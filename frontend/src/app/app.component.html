@@ -1,3 +1,39 @@
-<h1>
-  {{title}}
-</h1>
+<md-sidenav-layout>
+
+  <md-sidenav #sidenav (open)="homeOpen.focus()" mode="over">
+    <md-toolbar class="main-toolbar" [color]="primary">
+      <div #homeClose (click)="sidenav.close()">
+        <md-icon>menu</md-icon>
+      </div>
+      <span class="main-toolbar-title">What do you want to do?</span>
+    </md-toolbar>
+
+    <div class="sidenav-container">
+      <md-list>
+        <md-list-item class="sidenav-item" [routerLink]="['/viewer']"
+                      routerLinkActive="active" (click)="sidenav.close()">
+          <h3 md-line>Viewer</h3>
+        </md-list-item>
+        <md-list-item class="sidenav-item" [routerLink]="['/monitoring']"
+                      routerLinkActive="active" (click)="sidenav.close()">
+          <h3 md-line>Monitor query processing</h3>
+        </md-list-item>
+      </md-list>
+    </div>
+  </md-sidenav>
+
+  <toaster-container></toaster-container>
+
+  <md-toolbar [color]="primary" class="main-toolbar">
+    <div #homeOpen (click)="sidenav.open()">
+      <md-icon>menu</md-icon>
+    </div>
+    <span class="main-toolbar-title">{{title}}</span>
+  </md-toolbar>
+
+  <div class="router-outlet-container">
+    <router-outlet></router-outlet>
+  </div>
+
+
+</md-sidenav-layout>
