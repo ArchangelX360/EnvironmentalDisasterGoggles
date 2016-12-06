@@ -1,1 +1,3 @@
-GET   /         controllers.Main.echo
+GET   /                controllers.Main.main
+
+GET   /search          controllers.SearchController.search
