@@ -1,0 +1,37 @@
+md-sidenav {
+    width: 300px;
+    height: 100%;
+}
+
+md-sidenav-layout {
+    height: 100%;
+}
+
+.sidenav-content {
+    height: 200px;
+}
+
+.main-toolbar {
+    position: fixed;
+    z-index: 999;
+    height: 64px;
+}
+
+.main-toolbar-title {
+    padding-left: 16px !important;
+}
+
+.sidenav-item:hover {
+    background-color: #eeeeee;
+    cursor: pointer;
+}
+
+.router-outlet-container {
+    height: calc(100% - 64px);
+    padding-top: 64px;
+    overflow-y: auto;
+}
+
+.sidenav-container {
+    padding-top: 64px;
+}
