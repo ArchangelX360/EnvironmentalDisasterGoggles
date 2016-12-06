@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { QuerySenderService } from './query-sender.service';
+import { ToasterService } from 'angular2-toaster';
 
 @Component({
   selector: 'app-search-bar',
@@ -9,7 +10,7 @@ export class SearchBarComponent implements OnInit {
 
   private query: string;
 
-  constructor(private querySender: QuerySenderService) {
+  constructor(private querySender: QuerySenderService, private toasterService: ToasterService) {
   }
 
   ngOnInit() {
@@ -19,8 +20,21 @@ export class SearchBarComponent implements OnInit {
     console.log("Query sent:" + this.query);
     this.querySender.send(this.query).subscribe(
       // TODO: real handling
-      response => console.log(response),
-      error => console.log(<any>error)
+      response => this.responseHandler(response),
+      error => this.errorHandler(error)
     );
   }
+
+  responseHandler(response: any) {
+    // TODO : generify handler
+    console.log('[SUCCESS] [QUERY SERVICE] ' + response);
+    this.toasterService.pop('success', 'Query Service', response);
+  }
+
+  errorHandler(error: any) {
+    // TODO : generify handler
+    console.log('[ERROR] [QUERY SERVICE] ' + error);
+    this.toasterService.pop('error', 'Query Service', error);
+  }
+
 }

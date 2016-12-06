@@ -6,8 +6,7 @@ import { Http, Response } from '@angular/http';
 export class QuerySenderService {
 
   static responseParser(response: Response) {
-    let body = response.json();
-    return body;
+    return response.json();
   }
 
   static errorHandler(error: any) {
