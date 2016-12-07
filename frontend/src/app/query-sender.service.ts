@@ -18,7 +18,7 @@ export class QuerySenderService {
   send(query: string): Observable<any> {
     let headers = new Headers({'Content-Type': 'application/json'});
     let options = new RequestOptions({headers: headers});
-    let url = 'localhost:9000/search';
+    let url = 'http://localhost:9000/search';
 
     return this.http.post(url, {query}, options)
       .map(QuerySenderService.responseParser)
