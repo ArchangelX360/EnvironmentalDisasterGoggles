@@ -3,6 +3,7 @@
 @import 'spinner.css';
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
 @import 'toaster.css';
+@import 'md-table.css';
 
 html, body {
     width: 100%;

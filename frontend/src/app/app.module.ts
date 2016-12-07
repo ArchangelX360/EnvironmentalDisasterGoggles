@@ -13,6 +13,7 @@ import { routing, appRoutingProviders } from './app.routing';
 import { PageNotFoundComponent } from './page-not-found.component';
 import { ViewerComponent } from './viewer.component';
 import { MonitoringComponent } from './monitoring.component';
+import { MonitoringService } from './monitoring.service';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,11 @@ import { MonitoringComponent } from './monitoring.component';
     MaterialModule.forRoot(),
     ToasterModule
   ],
-  providers: [QuerySenderService, appRoutingProviders],
+  providers: [
+    QuerySenderService,
+    appRoutingProviders,
+    MonitoringService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {
