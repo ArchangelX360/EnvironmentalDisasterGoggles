@@ -8,7 +8,7 @@ import akka.util.Timeout
 import modules.searchengine.SearchActor
 import play.api.mvc.{Action, Controller}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.concurrent.duration._
 
@@ -41,8 +41,14 @@ class SearchController @Inject() (system: ActorSystem) extends Controller {
     (searchActor ? SearchActor.SearchMessage(message.getOrElse("")))
           .mapTo[String]
           .map(resultat => Ok(
-            Json.obj() + ("status", Json.toJson(resultat))
-          ))
+            JsObject(Seq(
+              ("status", Json.toJson(resultat)),
+              ("place", Json.toJson("Pau")),
+              ("from", Json.toJson("2007-04-05T14:30Z")),
+              ("to", Json.toJson("2008-04-05T14:30Z")),
+              ("type", Json.toJson("Fire"))
+            )
+          )))
 
 
   }
