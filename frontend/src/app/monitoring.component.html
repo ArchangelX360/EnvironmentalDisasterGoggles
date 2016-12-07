@@ -1,3 +1,24 @@
 <section>
-  Monitoring table goes here!
+  <table class="bordered striped centered-th">
+    <thead>
+    <tr>
+      <th>Name</th>
+      <th>Token</th>
+      <th>Status</th>
+      <th>Progress</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let query of queries">
+      <td>{{query.name}}</td>
+      <td>{{query.token}}</td>
+      <td>{{query.status}}</td>
+      <td>
+        <md-progress-bar color="primary" mode="determinate" [value]="query.progress"></md-progress-bar>
+        {{query.progress}}%
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
 </section>
