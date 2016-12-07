@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Http, Response } from '@angular/http';
+import { Http, Response, Headers, RequestOptions } from '@angular/http';
 
 @Injectable()
 export class QuerySenderService {
@@ -16,9 +16,11 @@ export class QuerySenderService {
   constructor(private http: Http) { }
 
   send(query: string): Observable<any> {
-    // TODO: change API URL to match the actual one
-    let url = 'localhost:9000/search?query='+ encodeURI(query);
-    return this.http.get(url)
+    let headers = new Headers({'Content-Type': 'application/json'});
+    let options = new RequestOptions({headers: headers});
+    let url = 'localhost:9000/search';
+
+    return this.http.post(url, {query}, options)
       .map(QuerySenderService.responseParser)
       .catch(QuerySenderService.errorHandler);
   }
