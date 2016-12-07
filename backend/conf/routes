@@ -1,3 +1,5 @@
 GET   /                controllers.Main.main
 
-GET   /search          controllers.SearchController.search
+POST  /search          controllers.SearchController.search
+
+GET   /process         controllers.SchedulerController.getProcess

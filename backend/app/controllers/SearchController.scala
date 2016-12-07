@@ -8,6 +8,8 @@ import akka.util.Timeout
 import modules.searchengine.SearchActor
 import play.api.mvc.{Action, Controller}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.JsValue
+
 import scala.concurrent.duration._
 
 
@@ -25,8 +27,18 @@ class SearchController @Inject() (system: ActorSystem) extends Controller {
   /**
     * Forward the message to the search actor and notify the sender that the processing have been scheduled
     */
-  def search() = Action.async {
-    (searchActor ? SearchActor.SearchMessage("Hello"))
+  def search() = Action.async { request =>
+
+    /**
+      * Extract the parameter query from the request body
+      */
+  val message = request.body.asJson
+      .flatMap(js => (js \ "query").asOpt[String])
+
+    /**
+      * Send the query to the search actor
+      */
+    (searchActor ? SearchActor.SearchMessage(message.getOrElse("")))
           .mapTo[String]
           .map(resultat => Ok(resultat))
   }
