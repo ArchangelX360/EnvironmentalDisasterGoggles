@@ -1,6 +1,6 @@
 import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
 import { QuerySenderService } from './query-sender.service';
-import { ToasterService } from 'angular2-toaster';
+import { MdSnackBar } from '@angular/material';
 
 @Component({
   selector: 'app-search-bar',
@@ -14,7 +14,8 @@ export class SearchBarComponent implements OnInit {
   private query: string;
 
 
-  constructor(private querySender: QuerySenderService, private toasterService: ToasterService) {
+  constructor(private querySender: QuerySenderService,
+              private mdSnackBar: MdSnackBar) {
   }
 
   ngOnInit() {
@@ -32,7 +33,7 @@ export class SearchBarComponent implements OnInit {
   responseHandler(response: any) {
     // TODO : generify handler
     console.log('[SUCCESS] [QUERY SERVICE] ' + response);
-    this.toasterService.pop('success', 'Query Service', response);
+    this.mdSnackBar.open('[QUERY SERVICE] ' + response, 'Close');
 
     this.queryResponse.emit(response);
 
@@ -41,7 +42,7 @@ export class SearchBarComponent implements OnInit {
   errorHandler(error: any) {
     // TODO : generify handler
     console.log('[ERROR] [QUERY SERVICE] ' + error);
-    this.toasterService.pop('error', 'Query Service', error);
+    this.mdSnackBar.open('[QUERY SERVICE] ' + error, 'Close');
   }
 
 }
