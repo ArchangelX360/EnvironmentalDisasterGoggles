@@ -1,3 +1,6 @@
 google-api-python-client
 pyCrypto
 earthengine-api
+mock
+flask
+python-gflags
