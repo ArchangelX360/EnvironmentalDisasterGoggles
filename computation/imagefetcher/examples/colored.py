@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-"""Example of image collection manipulation.
+"""Example of images collections manipulation.
 
 In this example, we will see how to manipulate images collections. Image
 collections are a set of images taken from a satellite (so using the same
@@ -33,7 +33,8 @@ raw_collection = (ee.ImageCollection('LANDSAT/LC8_L1T')
         .filterDate("2000-01-01", "2015-06-1")
         .filterBounds(rectangle))
 
-# Compile the collection as a mosaic.
+# Compile the collection as a single image using the median value of a band
+# when multiple images overlap.
 sanitized_image = raw_collection.median()
 
 # Snap it to the desired bounds and select the expected bands.

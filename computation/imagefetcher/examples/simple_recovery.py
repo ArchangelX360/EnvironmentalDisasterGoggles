@@ -21,9 +21,6 @@ import ee
 # Initialize the Earth Engine.
 ee.Initialize()
 
-rectangle = ee.Geometry.Rectangle(-123, 38, -121, 36)
-region = rectangle.bounds().getInfo()['coordinates'][0]
-
 # Take one image of the Landsat 8 satellite.
 raw_image = ee.Image('LC8_L1T/LC80440342014077LGN00')
 
@@ -35,9 +32,6 @@ image = raw_image.select(['B4', 'B3', 'B2'])
 # Landsat images use a scale from 6000 to 18000, so tell the engine to use
 # this scale.
 params = {'min': 6000, 'max': 18000}
-params.update({
-    'region': region,
-})
 
 # Finally generate the link
 print image.getDownloadUrl(params)
