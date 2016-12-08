@@ -9,7 +9,7 @@ class SchedulerService @Inject() (system: ActorSystem) {
   /**
     * The scheduler have access to the status of all tasks
     */
-  val schedulerActor = system.actorOf(SchedulerActor.props)
+  val monitoringActor = system.actorOf(MonitoringActor.props)
 
 
 }
