@@ -1,0 +1,3 @@
+<h3 md-subheader>{{query.name}} ({{query.author}}) -- {{query.status}}</h3>
+<app-task *ngFor="let task of query.tasks" [task]="task"></app-task>
+<md-divider></md-divider>
