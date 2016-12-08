@@ -1,6 +1,9 @@
+import { Task } from './task';
+
 export interface Query {
+  id: string;
   name: string;
-  token: string;
+  author: string;
   status: string;
-  progress: number;
+  tasks: Task[];
 }

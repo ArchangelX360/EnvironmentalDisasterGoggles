@@ -9,6 +9,7 @@ import { MonitoringService } from './monitoring.service';
 export class MonitoringComponent implements OnInit {
 
   private queries: Query[];
+  private userToken: string;
 
   constructor(private monitoringService: MonitoringService) {
   }
@@ -16,6 +17,10 @@ export class MonitoringComponent implements OnInit {
   ngOnInit() {
     this.monitoringService.getQueries().subscribe(
       response => this.queries = response,
+      error => console.log(error)
+    );
+    this.monitoringService.getAuthor().subscribe(
+      response => this.userToken = response,
       error => console.log(error)
     );
   }

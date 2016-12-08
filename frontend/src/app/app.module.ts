@@ -13,6 +13,9 @@ import { PageNotFoundComponent } from './page-not-found.component';
 import { ViewerComponent } from './viewer.component';
 import { MonitoringComponent } from './monitoring.component';
 import { MonitoringService } from './monitoring.service';
+import { OwnQueriesPipe } from './own-queries.pipe';
+import { QueryComponent } from './query.component';
+import { TaskComponent } from './task.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +23,10 @@ import { MonitoringService } from './monitoring.service';
     SearchBarComponent,
     PageNotFoundComponent,
     ViewerComponent,
-    MonitoringComponent
+    MonitoringComponent,
+    OwnQueriesPipe,
+    QueryComponent,
+    TaskComponent
   ],
   imports: [
     BrowserModule,
