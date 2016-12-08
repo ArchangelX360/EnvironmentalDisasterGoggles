@@ -1,33 +1,43 @@
 package modules.scheduler
 
 import akka.actor.{Actor, Props}
-import akka.actor.Actor.Receive
+import models.Process
 
 import scala.collection.mutable
 
 object SchedulerActor {
 
-  case class Process(id: String, status: String, name: String)
-
   def props = Props[SchedulerActor]
-
-  def process = mutable.ListBuffer.empty[Process]
 
   /**
     * Message definition
     */
-  case class Begin(id: String, name: String)
-  case class End(id: String)
+  case class StartProcess(query: String)
+  case class UpdateProcess(id: String, status: String)
 }
 
 class SchedulerActor extends Actor {
 
   import SchedulerActor._
 
+  val processList = mutable.MutableList.empty[Process]
+
   override def receive: Receive = {
-    case Begin(id, name) => ()
-    case End(id) => ()
-    case "List" => sender ! SchedulerActor.process.map(process => process.toString).mkString("\n")
+    case StartProcess(query) => sender ! startProcess(query)
+    case "List" => sender ! processList.map(process => process.toString).mkString("\n")
     case _ => ()
   }
+
+  def startProcess(query: String): Process = {
+    val process = Process(
+      id = String.valueOf(Math.random()),
+      query = query,
+      status = "started",
+      tasks = List.empty)
+
+    processList += process
+
+    process
+  }
+
 }

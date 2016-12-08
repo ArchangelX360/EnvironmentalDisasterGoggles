@@ -1,4 +1,4 @@
-GET   /                controllers.Main.main
+GET   /                controllers.Index.main
 
 POST  /search          controllers.SearchController.search
 
