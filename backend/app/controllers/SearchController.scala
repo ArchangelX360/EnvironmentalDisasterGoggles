@@ -5,7 +5,7 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import models.Process
+import models.Query
 import modules.scheduler.SchedulerService
 import modules.searchengine.SearchActor
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -22,7 +22,7 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
   /**
     * Handle all the search requests (including NLP processing)
     */
-  val searchActor = system.actorOf(SearchActor.props(schedulerService.schedulerActor), "search-actor")
+  val searchActor = system.actorOf(SearchActor.props(schedulerService.monitoringActor), "search-actor")
 
   /**
     * Do no send a response after this delay, the processing is not canceled anyway
@@ -44,19 +44,18 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
       * Send the query to the search actor
       */
     (searchActor ? SearchActor.SearchMessage(message.getOrElse("empty")))
-          .mapTo[Process]
+          .mapTo[Query]
           .map(resultat => Ok(
             JsObject(Seq(
               ("status", Json.toJson(resultat.status)),
-              ("query", Json.toJson(resultat.query)),
+              ("query", Json.toJson(resultat.name)),
               ("place", Json.toJson("Pau")),
               ("from", Json.toJson("2007-04-05T14:30Z")),
               ("to", Json.toJson("2008-04-05T14:30Z")),
               ("type", Json.toJson("Fire"))
             )
           )))
-
-
+    
   }
 }
 
