@@ -1,24 +1,14 @@
-<section>
-  <table class="bordered striped centered-th">
-    <thead>
-    <tr>
-      <th>Name</th>
-      <th>Token</th>
-      <th>Status</th>
-      <th>Progress</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr *ngFor="let query of queries">
-      <td>{{query.name}}</td>
-      <td>{{query.token}}</td>
-      <td>{{query.status}}</td>
-      <td>
-        <md-progress-bar color="primary" mode="determinate" [value]="query.progress"></md-progress-bar>
-        {{query.progress}}%
-      </td>
-    </tr>
-    </tbody>
-  </table>
-
-</section>
+<md-tab-group>
+  <md-tab label="All">
+    <md-list>
+      <app-query *ngFor="let query of queries"
+                 [query]="query"></app-query>
+    </md-list>
+  </md-tab>
+  <md-tab label="Self">
+    <md-list>
+      <app-query *ngFor="let query of queries | ownQueries:userToken"
+                 [query]="query"></app-query>
+    </md-list>
+  </md-tab>
+</md-tab-group>
