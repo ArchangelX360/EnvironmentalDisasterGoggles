@@ -16,7 +16,7 @@ export class ViewerComponent implements OnInit {
   }
 
   queryResponse(response) {
-    console.log("reponse dans le viewer", response);
+    console.log("Response in viewer : ", response);
     this.response = response;
   }
 }
