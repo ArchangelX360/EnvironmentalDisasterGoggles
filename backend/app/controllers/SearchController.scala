@@ -48,8 +48,6 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
           .mapTo[Query]
           .map(resultat => Ok(
             JsObject(Seq(
-              ("status", Json.toJson(resultat.status)),
-              ("query", Json.toJson(resultat.name)),
               ("place", Json.toJson("Pau")),
               ("from", Json.toJson("2007-04-05T14:30Z")),
               ("to", Json.toJson("2008-04-05T14:30Z")),
