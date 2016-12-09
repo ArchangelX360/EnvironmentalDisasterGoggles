@@ -7,7 +7,7 @@
   </md-tab>
   <md-tab label="Self">
     <md-list>
-      <app-query *ngFor="let query of queries | ownQueries:userToken"
+      <app-query *ngFor="let query of queries | authorQueries:userToken"
                  [query]="query"></app-query>
     </md-list>
   </md-tab>

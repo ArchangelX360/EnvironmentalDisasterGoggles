@@ -13,7 +13,7 @@ import { PageNotFoundComponent } from './page-not-found.component';
 import { ViewerComponent } from './viewer.component';
 import { MonitoringComponent } from './monitoring.component';
 import { MonitoringService } from './monitoring.service';
-import { OwnQueriesPipe } from './own-queries.pipe';
+import { AuthorQueriesPipe } from './author-queries.pipe';
 import { QueryComponent } from './query.component';
 import { TaskComponent } from './task.component';
 
@@ -24,7 +24,7 @@ import { TaskComponent } from './task.component';
     PageNotFoundComponent,
     ViewerComponent,
     MonitoringComponent,
-    OwnQueriesPipe,
+    AuthorQueriesPipe,
     QueryComponent,
     TaskComponent
   ],
