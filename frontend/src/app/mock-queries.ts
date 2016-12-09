@@ -1,4 +1,6 @@
 import { Query } from './query';
+
+/** Mocks queries array that would retrieve at route /monitoring/queries */
 export let QUERIES: Query[] = [
   {
     "id": "1",
