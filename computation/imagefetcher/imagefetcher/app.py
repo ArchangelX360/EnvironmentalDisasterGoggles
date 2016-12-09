@@ -13,6 +13,7 @@ can initialize it by running the following command:
 
 Defined routes are:
     /rgb
+    /forestDiff
 """
 
 import ee
@@ -60,7 +61,7 @@ def handle_error(error):
 @get_param("polygon", parser=Parser.polygon, required=True)
 @get_param("scale", parser=int, default=100)
 @get_param("delta", parser=Parser.date_delta, default=DateDelta(0, 3, 0))
-def GetRGBImage(date, polygon, scale, delta):
+def rgb_handler(date, polygon, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
     GET query parameters:
@@ -82,6 +83,49 @@ def GetRGBImage(date, polygon, scale, delta):
     """
     start_date, end_date = delta.generate_start_end_date(date)
     url = fetcher.GetRGBImage(start_date, end_date, polygon, scale)
+    return jsonify(href=url)
+
+
+@app.route('/forestDiff')
+@get_param('polygon', parser=Parser.polygon, required=True)
+@get_param('start', parser=int, default=2000)
+@get_param('stop', parser=int, default=2016)
+@get_param('scale', parser=int, default=500)
+def forest_diff_handler(polygon, start, stop, scale):
+    """Generates a RGB image of an are representing {de,re}forestation.
+
+    Generates a RGB image where red green and blue channels correspond
+    respectively to deforestation, reforestation and non land values. Non
+    land values (blue channel) is set to 255 if the pixel is over non-land
+    field (such as ocean, rivers...) and 0 elsewhere.
+
+    See :meth:`ImageFetcher.GetForestIndicesImage` for more informations.
+
+    GET Parameters:
+        polygon (list[list[int]]):
+            Area to visualize. Required.
+        start (int):
+            Reference year. Must be greater or equal than 2000.
+        stop (int):
+            Year on which we will subtract the data generated from start year.
+            Must be greater than start year, and lower than 2016.
+        scale (int):
+            Precision of the picture. Unit is meter per pixels so lower is
+            better.
+    Returns:
+        A JSON containing metadata about the image:
+            href (link):
+                Link to download the image.
+            error (str):
+                In case of error, displays the error message.
+    """
+    try:
+        assert 2000 <= start < 2016, "Start year must be within 2000 and 2016"
+        assert start < stop <= 2016, "Stop year must be within start and 2016"
+    except AssertionError as e:
+        raise Error(str(e))
+
+    url = fetcher.GetForestIndicesImage(start, stop, polygon, scale)
     return jsonify(href=url)
 
 
