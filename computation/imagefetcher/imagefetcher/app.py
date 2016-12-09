@@ -19,13 +19,14 @@ import ee
 import gflags
 import json
 
-from datetime import datetime
-from datetime import timedelta
 from flask import Flask
 from flask import jsonify
-from flask import request
 
 from fetcher import ImageFetcher
+from utils import DateDelta
+from utils import Error
+from utils import Parser
+from utils import get_param
 
 
 app = Flask(__name__)
@@ -46,20 +47,6 @@ ee.Initialize()
 fetcher = ImageFetcher()
 
 
-class Error(Exception):
-    """Exception raised when an error occurs in the API."""
-
-    status_code = 400
-
-    def __init__(self, message, status_code=400):
-        Exception.__init__(self)
-        self.message = message
-        self.status_code = status_code
-
-    def to_dict(self):
-        return {"error": self.message}
-
-
 @app.errorhandler(Error)
 def handle_error(error):
     """Handler triggered when the Error exception is raised."""
@@ -69,7 +56,11 @@ def handle_error(error):
 
 
 @app.route('/rgb')
-def GetRGBImage():
+@get_param("date", parser=Parser.date, required=True)
+@get_param("polygon", parser=Parser.polygon, required=True)
+@get_param("scale", parser=int, default=100)
+@get_param("delta", parser=Parser.date_delta, default=DateDelta(0, 3, 0))
+def GetRGBImage(date, polygon, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
     GET query parameters:
@@ -89,46 +80,7 @@ def GetRGBImage():
             error (str):
                 In case of error, displays the error message.
     """
-    raw_date = request.args.get('date')
-    if raw_date is None:
-        raise Error("Missing required argument 'date'.")
-    raw_polygon = request.args.get('polygon')
-    if raw_polygon is None:
-        raise Error("Missing required argument 'polygon'.")
-    raw_delta = request.args.get('delta', FLAGS.default_delta)
-    raw_scale = request.args.get('scale', FLAGS.default_scale)
-
-    try:
-        date = datetime.strptime(raw_date, "%Y-%m-%d")
-    except ValueError as e:
-        raise Error(str(e))
-
-    try:
-        polygon = json.loads(raw_polygon)
-        assert type(polygon) == list, "Not a list"
-        assert all(type(p) == list for p in polygon), "Not a list of list."
-        assert all(len(p) == 2 for p in polygon), ("Some points do not have 2 "
-                "coords.")
-        assert all(all(type(c) in (int, float) for c in p)
-                for p in polygon), "Some points have invalid types."
-        assert polygon[0] == polygon[-1], "Last point must equal first point."
-    except ValueError:
-        raise Error("Unreadable JSON sent in 'polygon' argument.")
-    except AssertionError as e:
-        raise Error("Invalid JSON. Error was: " + str(e))
-
-    try:
-        year, month, day = [int(t) for t in raw_delta.split("-")]
-        start_date = datetime(date.year - year, date.month - month, date.day - day)
-        end_date = datetime(date.year + year, date.month + month, date.day + day)
-    except ValueError:
-        raise Error("Malformed delta date.")
-
-    try:
-        scale = int(raw_scale)
-    except ValueError:
-        raise Error("Scale is not an integer.")
-
+    start_date, end_date = delta.generate_start_end_date(date)
     url = fetcher.GetRGBImage(start_date, end_date, polygon, scale)
     return jsonify(href=url)
 
