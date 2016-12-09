@@ -3,8 +3,8 @@
 """Application definition for the Image Fetcher API.
 
 The Image Fetcher creates a Flask server handling several routes sending
-requests to the Google Earth Engine, that generates a link to download
-images. All routes returns matadatas containing notably the download link.
+requests to the Google Earth Engine that generates a link to download
+images. All routes returns metadata containing notably the download link.
 
 This application requires a Google Earth Engine token to work. If you do not
 own one, please ask one on the official website [1]. If you do own one, you
@@ -107,8 +107,8 @@ def GetRGBImage():
         polygon = json.loads(raw_polygon)
         assert type(polygon) == list, "Not a list"
         assert all(type(p) == list for p in polygon), "Not a list of list."
-        assert all(len(p) == 2 for p in polygon), ("Some points have "
-            "does not have 2 coords.")
+        assert all(len(p) == 2 for p in polygon), ("Some points do not have 2 "
+                "coords.")
         assert all(all(type(c) in (int, float) for c in p)
                 for p in polygon), "Some points have invalid types."
         assert polygon[0] == polygon[-1], "Last point must equal first point."

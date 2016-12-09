@@ -64,7 +64,7 @@ class ImageFetcher:
     """Implementation of the image fetcher."""
 
     def __init__(self, query_per_seconds=DEFAULT_QUERY_PER_SECONDS):
-        """Constructor. Initialize a rate limit.
+        """Constructor. Initializes a rate limit.
 
         Parameters:
             query_per_seconds: number of query per seconds on the backend.
