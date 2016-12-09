@@ -59,7 +59,7 @@ def handle_error(error):
 @app.route('/rgb')
 @get_param("date", parser=Parser.date, required=True)
 @get_param("polygon", parser=Parser.polygon, required=True)
-@get_param("scale", parser=int, default=100)
+@get_param("scale", parser=float, default=100)
 @get_param("delta", parser=Parser.date_delta, default=DateDelta(0, 3, 0))
 def rgb_handler(date, polygon, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
@@ -69,7 +69,7 @@ def rgb_handler(date, polygon, scale, delta):
             Average date of the image to fetch. Required.
         polygon (list[list[int]]):
             Area to visualize. Required.
-        scale (int):
+        scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
             better.
         delta (yyyy-mm-dd):
@@ -90,7 +90,7 @@ def rgb_handler(date, polygon, scale, delta):
 @get_param('polygon', parser=Parser.polygon, required=True)
 @get_param('start', parser=int, default=2000)
 @get_param('stop', parser=int, default=2016)
-@get_param('scale', parser=int, default=500)
+@get_param('scale', parser=float, default=500)
 def forest_diff_handler(polygon, start, stop, scale):
     """Generates a RGB image of an are representing {de,re}forestation.
 
@@ -109,7 +109,7 @@ def forest_diff_handler(polygon, start, stop, scale):
         stop (int):
             Year on which we will subtract the data generated from start year.
             Must be greater than start year, and lower than 2016.
-        scale (int):
+        scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
             better.
     Returns:
