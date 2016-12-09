@@ -13,7 +13,7 @@ case class Task(id: String, name: String, status: String, progress: Int)
   * @param name Content of the query (request)
   * @param tasks List all tasks associated with this query
   */
-case class Query(id: String, name: String, status: String, tasks: List[Task])
+case class Query(id: String, author: String, name: String, status: String, tasks: List[Task])
 
 /**
   * Companion object for Query class, contains implicit converters for tasks and query
