@@ -34,7 +34,7 @@ class FetcherController @Inject() (system: ActorSystem, ws: WSClient, configurat
     val response = fetcherActor ? FetchRGB (
       start = (body \ "start").as[String],
       delta = (body \ "delta").as[String],
-      scale = (body \ "scale").as[Double],
+      scale = (body \ "scale").asOpt[Double],
       polygon = (body \ "position").get
     )
 

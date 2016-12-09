@@ -19,7 +19,7 @@ object FetcherActor {
   /**
     * Messages definitions
     */
-  case class FetchRGB(start: String, delta: String, scale: Double = 1.0, polygon: JsValue)
+  case class FetchRGB(start: String, delta: String, scale: Option[Double], polygon: JsValue)
   case class FetchResponse(url: String)
 }
 
@@ -45,13 +45,18 @@ class FetcherActor(ws: WSClient, serverUrl: String) extends Actor {
     */
   def fetchImage(message: FetchRGB) = {
 
+    val initialParams = Seq(
+      ("start", message.start),
+      ("delta", message.delta),
+      ("polygon", message.polygon.toString))
+
+    val params =
+      if (message.scale.isDefined) initialParams :+ ("scale", message.scale.get.toString)
+      else initialParams
+
     val request = ws.url(serverUrl + "/rgb")
-        .withQueryString(
-          ("start", message.start),
-          ("delta", message.delta),
-          ("scale", message.scale.toString),
-          ("polygon", message.polygon.toString))
-          .get()
+        .withQueryString(params:_*)
+        .get()
 
     request.map ( response =>
         if (response.status == 200) {
