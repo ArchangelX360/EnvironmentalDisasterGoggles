@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { QuerySenderService } from './query-sender.service';
 import { MdSnackBar } from '@angular/material';
 
@@ -13,7 +13,6 @@ export class SearchBarComponent implements OnInit {
 
   private query: string;
 
-
   constructor(private querySender: QuerySenderService,
               private mdSnackBar: MdSnackBar) {
   }
@@ -22,27 +21,17 @@ export class SearchBarComponent implements OnInit {
   }
 
   sendRequest() {
-    console.log("Query sent:" + this.query);
+    console.log("[INFO] Query sent: " + this.query);
     this.querySender.send(this.query).subscribe(
-      // TODO: real handling
-      response => this.responseHandler(response),
+      response => this.queryResponse.emit(response),
       error => this.errorHandler(error)
     );
   }
 
-  responseHandler(response: any) {
-    // TODO : generify handler
-    console.log('[SUCCESS] [QUERY SERVICE] ' + response);
-    this.mdSnackBar.open('[QUERY SERVICE] ' + response, 'Close');
-
-    this.queryResponse.emit(response);
-
-  }
-
   errorHandler(error: any) {
-    // TODO : generify handler
-    console.log('[ERROR] [QUERY SERVICE] ' + error);
-    this.mdSnackBar.open('[QUERY SERVICE] ' + error, 'Close');
+    let logStr = '[ERROR] [QUERY SENDER SERVICE] ' + error;
+    console.log(logStr);
+    this.mdSnackBar.open(logStr, 'Close');
   }
 
 }
