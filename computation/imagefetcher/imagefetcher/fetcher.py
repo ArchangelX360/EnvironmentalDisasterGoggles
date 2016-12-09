@@ -7,6 +7,7 @@ import time
 import threading
 
 from collections import deque
+from datetime import datetime
 
 # We cannot use a flag here, because of how the application is designed.
 DEFAULT_QUERY_PER_SECONDS = 3
@@ -71,14 +72,23 @@ class ImageFetcher:
         """
         self.rate_limiter = RateLimit(query_per_seconds, 1)
 
+    def _load_land_mask(self):
+        """Load a mask of lands and rivers.
+
+        This mask has 0 values on non-lands part of the image (e.g. oceans or
+        rivers) and 1 values else. This should be used as a mask to
+        manipulate lands and non lands part of the image
+        """
+        return (ee.Image('MODIS/051/MCD12Q1/2001_01_01')
+                .select(['Land_Cover_Type_1'])
+                .neq(0))
+
     def _GetRGBImage(self, start_date, end_date, polygon, scale):
         """Generates a RGB satellite image of an area within two dates.
 
         See :meth:`GetRGBImage` for information about the parameters.
         """
         geometry = ee.Geometry.Polygon([polygon])
-
-        print(start_date, end_date, polygon, scale)
 
         # Get the Landsat 8 collection.
         # TODO(funkysayu) might be good taking a look at other ones.
@@ -103,6 +113,45 @@ class ImageFetcher:
             'format': 'png',
         })
 
+    def _GetForestIndicesImage(self, start_year, end_year, polygon, scale):
+        """Generates a RGB image representing forestation within two years
+
+        See :meth:`GetForestIndicesImage` for information about the parameters.
+        """
+        geometry = ee.Geometry.Polygon([polygon])
+        mask = self._load_land_mask()
+
+        # Within many datasets, the MODIS/MOD13A1 is the most accurate on the
+        # amazon rainforest. Other datasets contains noise on some part of the
+        # image. Also select EVI, which is more accurate than NDVI here.
+        collection = ee.ImageCollection('MODIS/MOD13A1').select(['EVI'])
+
+        # Do the difference between EVI on one year.
+        older_evi = collection.filterDate(datetime(start_year, 1, 1),
+            datetime(start_year, 12, 31)).median()
+        newest_evi = collection.filterDate(datetime(end_year, 1, 1),
+            datetime(end_year, 12, 31)).median()
+        difference = newest_evi.subtract(older_evi)
+
+        # Set to 0 masked parts, and remove the mask. Thanks to this, image
+        # will still be generated on masked parts.
+        difference = difference.where(mask.eq(0), 0).unmask()
+
+        # Get negatives (deforestation) and positives (reforestation) parts.
+        positives = difference.where(difference.lt(0), 0)
+        negatives = difference.where(difference.gte(0), 0).abs()
+
+        # The estimated scale is from 0 to 2000 values. Set the mask to 0 where
+        # there is lands and 2000 elsewhere.
+        scaled_mask = mask.where(mask.eq(0), 2000).where(mask.eq(1), 0)
+
+        rgb_image = ee.Image.rgb(negatives, positives, scaled_mask)
+        return rgb_image.visualize(min=0, max=2000).getDownloadURL({
+            'region': geometry.toGeoJSONString(),
+            'scale': scale,
+            'format': 'png',
+        })
+
     def GetRGBImage(self, start_date, end_date, polygon, scale=100):
         """Generates a RGB satellite image of an area within two dates.
 
@@ -119,3 +168,37 @@ class ImageFetcher:
         """
         with self.rate_limiter:
             return self._GetRGBImage(start_date, end_date, polygon, scale)
+
+    def GetForestIndicesImage(self, start_year, end_year, polygon, scale):
+        """Generates a RGB image representing forestation within two years.
+
+        Generates a RGB image where red green and blue channels correspond
+        respectively to deforestation, reforestation and non land values. Non
+        land values (blue channel) is set to 255 if the pixel is over non-land
+        field (such as ocean, rivers...) and 0 elsewhere.
+
+        Analysis are done over one year to ensure weather metrics will not
+        polute the result. We also use the Enhanced Vegetation Index (EVI)
+        instead of the Normalized Difference Vegetation Index (NDVI) because
+        the accuracy is better on this dataset.
+
+        The dataset used to generate this image is the MOD13A1.005 Vegetation
+        Indices 16-Day L3 Global 500m [1], provided publicly by the NASA. It is
+        updated every 16 days, with a maximum scale of 500 meter per pixels.
+        This is the most accurate on the amazon rainforest.
+
+        Parameters:
+            start_year: integer representing the reference year. Must be
+                greater or equal than 2000.
+            end_year: integer representing the year on which we will subtract
+                the data generated from the start_year. Must be greater than
+                start_year, and lesser or equal to 2016.
+            polygon: area to fetch; a list of latitude and longitude making a
+                polygon.
+            scale: image resolution, in meters per pixels.
+        Returns:
+            An URL to the generated image.
+        """
+        with self.rate_limiter:
+            return self._GetForestIndicesImage(start_year, end_year, polygon,
+                scale)

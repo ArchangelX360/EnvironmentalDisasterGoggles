@@ -20,8 +20,8 @@ def shutdown():
     return ""
 
 
-class RGBRouteTest(unittest.TestCase):
-    """Test the /rgb route is correctly handled."""
+class FlaskApplicationTest(unittest.TestCase):
+    """Test the Flask application routes is correctly handled."""
 
     @classmethod
     def setUpClass(cls):
@@ -29,10 +29,10 @@ class RGBRouteTest(unittest.TestCase):
         # Generate server address, based on port flag's default value.
         gflags.FLAGS([])
         cls.server_address = ("127.0.0.1", FLAGS.port)
-        cls.base_url = "http://%s:%s/rgb" % (cls.server_address)
+        cls.base_url = "http://%s:%s" % (cls.server_address)
 
         cls.thread = threading.Thread(target=app.app.run,
-                args=cls.server_address)
+            args=cls.server_address)
         cls.thread.start()
 
         # Save the fetcher previously generated in the app module. We are going
@@ -53,30 +53,43 @@ class RGBRouteTest(unittest.TestCase):
         self.fetcher = mock.MagicMock()
         app.fetcher = self.fetcher
 
+    def do_request(self, route="/", params=None):
+        """Sends the request to the server.
+
+        Parameters:
+            route: route to check.
+            params: GET parameters to send.
+        Returns:
+            The requests.Response object sent by the server.
+        """
+        if params is None:
+            params = {}
+
+        return requests.get(self.base_url + route, params=params)
+
     def test_server_running(self):
         """Simply test the server is running."""
-        response = requests.get("http://%s:%s/" % self.server_address)
+        response = self.do_request()
         self.assertEquals(response.status_code, 200)
 
-    def test_missing_arguments(self):
+    def test_rgb_missing_arguments(self):
         """Test if missing arguments are correctly handled."""
-        response = requests.get(self.base_url)
+        response = self.do_request("/rgb")
         self.assertEquals(response.status_code, 400)
-        response = requests.get(self.base_url, params={'date': '2000-01-01'})
+        response = self.do_request("/rgb", params={'date': '2000-01-01'})
         self.assertEquals(response.status_code, 400)
-        response = requests.get(self.base_url,
-            params={'polygon': VALID_POLYGON})
+        response = self.do_request("/rgb", params={'polygon': VALID_POLYGON})
         self.assertEquals(response.status_code, 400)
 
-    def test_invalid_date(self):
+    def test_rgb_invalid_date(self):
         """Test if invalid date is correctly handled."""
-        response = requests.get(self.base_url, params={
+        response = self.do_request("/rgb", params={
             'date': 'bad-bad',
             'polygon': VALID_POLYGON,
         })
         self.assertEquals(response.status_code, 400)
 
-    def test_invalid_polygon(self):
+    def test_rgb_invalid_polygon(self):
         """Test if invalid polygons are correctly handled."""
         invalids = [
             {"somekey": "somevalue"},
@@ -86,33 +99,101 @@ class RGBRouteTest(unittest.TestCase):
         ]
 
         for invalid in invalids:
-            response = requests.get(self.base_url, params={
+            response = self.do_request("/rgb", params={
                 'date': VALID_DATE,
                 'polygon': json.dumps(invalid)
             })
             self.assertEqual(response.status_code, 400)
 
-    def test_valid_simple_query(self):
+    def test_rgb_valid_simple_query(self):
         """Test a valid query."""
         self.fetcher.GetRGBImage.return_value = "http://something.com/foo"
-        response = requests.get(self.base_url, params={
+        response = self.do_request("/rgb", params={
             'date': VALID_DATE,
             'polygon': VALID_POLYGON,
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+            response.json().get("error", "[internal error]"))
         self.assertTrue(self.fetcher.GetRGBImage.called)
 
-    def test_valid_complex_query(self):
+    def test_rgb_valid_complex_query(self):
         """Test a valid query with all parameters."""
         self.fetcher.GetRGBImage.return_value = "http://something.com/foo"
-        response = requests.get(self.base_url, params={
+        response = self.do_request("/rgb", params={
             'date': VALID_DATE,
             'polygon': VALID_POLYGON,
             'scale': 1000,
             'delta': '0000-01-00',
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+            response.json().get("error", "[internal error]"))
         self.assertTrue(self.fetcher.GetRGBImage.called)
+
+    def test_forest_diff_missing_arguments(self):
+        """Test if missing arguments are correctly handled."""
+        response = self.do_request("/forestDiff")
+        self.assertEquals(response.status_code, 400)
+
+    def test_forest_diff_invalid_polygon(self):
+        """Test if invalid polygons are correctly handled."""
+        invalids = [
+            {"somekey": "somevalue"},
+            [1, 2],
+            [[1, 2, 3], [1, 2], [1, 3]],
+            [["1", "2"], ["2", "3"]],
+        ]
+
+        for invalid in invalids:
+            response = self.do_request("/forestDiff", params={
+                'polygon': json.dumps(invalid)
+            })
+            self.assertEqual(response.status_code, 400)
+
+    def test_forest_diff_invalid_years(self):
+        """Test invalid years."""
+        invalid_dates = [
+            (1999, None),
+            (2016, None),
+            (1999, 2015),
+            (None, 2017),
+            (None, 2000),
+            (2001, 2017),
+            (2000, 2000),
+            (2005, 2004),
+        ]
+
+        for start, stop in invalid_dates:
+            params = {"polygon": VALID_POLYGON}
+            if start is not None:
+                params["start"] = start
+            if stop is not None:
+                params["stop"] = stop
+
+            response = self.do_request("/forestDiff", params=params)
+            self.assertEqual(response.status_code, 400)
+
+    def test_forest_diff_valid_simple_query(self):
+        """Test a valid query."""
+        self.fetcher.GetForestIndicesImage.return_value = "http://foo.com/bar"
+        response = self.do_request("/forestDiff", params={
+            'polygon': VALID_POLYGON,
+        })
+        self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+            response.json().get("error", "[internal error]"))
+        self.assertTrue(self.fetcher.GetForestIndicesImage.called)
+
+    def test_forest_diff_valid_complex_query(self):
+        """Test a valid query with all parameters."""
+        self.fetcher.GetForestIndicesImage.return_value = "http://foo.com/bar"
+        response = self.do_request("/forestDiff", params={
+            'start': 2001,
+            'stop': 2015,
+            'polygon': VALID_POLYGON,
+            'scale': 600,
+        })
+        self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+            response.json().get("error", "[internal error]"))
+        self.assertTrue(self.fetcher.GetForestIndicesImage.called)
 
 
 if __name__ == "__main__":
