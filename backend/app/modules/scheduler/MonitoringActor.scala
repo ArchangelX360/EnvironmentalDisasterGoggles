@@ -1,7 +1,7 @@
 package modules.scheduler
 
 import akka.actor.{Actor, Props}
-import models.Query
+import models.{Query, Task}
 
 import scala.collection.mutable
 
@@ -15,10 +15,12 @@ object MonitoringActor {
   /**
     * Message definition
     */
-  case class StartProcess(query: String)
+  case class StartProcess(query: String, author: String)
   case class UpdateProcess(id: String, status: String)
-
   case class ListProcess(status: Option[String] = None)
+
+  case class StartTask(processId: String, name: String)
+  case class UpdateTask(processId: String, taskId: String, status: Option[String] = None, progress: Option[Int] = None)
 }
 
 class MonitoringActor extends Actor {
@@ -37,7 +39,7 @@ class MonitoringActor extends Actor {
     * Message handling
     */
   override def receive: Receive = {
-    case StartProcess(query) => sender ! startProcess(query)
+    case StartProcess(query, author) => sender ! startProcess(query, author)
     case ListProcess(status) => sender ! listProcess(status)
     case _ => ()
   }
@@ -45,10 +47,11 @@ class MonitoringActor extends Actor {
   /**
     * Create monitoring for a new process/query
     */
-  def startProcess(query: String): Query = {
+  def startProcess(query: String, author: String): Query = {
     val process = Query(
       id = String.valueOf(Math.random()), // Generate a random id
       name = query,
+      author = author,
       status = "started",
       tasks = List.empty)
 

@@ -10,11 +10,12 @@ import modules.scheduler.MonitoringActor
 
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, _}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object SearchActor {
   def props(scheduler: ActorRef) = Props(new SearchActor(scheduler))
 
-  case class SearchMessage(message: String)
+  case class SearchMessage(message: String, author: String)
 }
 
 class SearchActor (scheduler: ActorRef) extends Actor {
@@ -33,7 +34,7 @@ class SearchActor (scheduler: ActorRef) extends Actor {
     * Handle incoming message send to this actor
     */
   override def receive: Receive = {
-    case SearchMessage(message) => sender ! processMessage(message)
+    case SearchMessage(message, author) => processMessage(message, author)
     case _ => throw new InvalidParameterException()
   }
 
@@ -43,12 +44,15 @@ class SearchActor (scheduler: ActorRef) extends Actor {
     * @param message Search query send by the web interface
     * @return A confirmation that the message is scheduled for processing
     */
-  def processMessage(message: String): Query = {
-    val schedulerResponse = (scheduler ? MonitoringActor.StartProcess(message)).mapTo[Query]
+  def processMessage(message: String, author: String) = {
+    val schedulerResponse = (scheduler ? MonitoringActor.StartProcess(message, author)).mapTo[Query]
 
-    // We need information on the process to go further, therefore we wait for the process to be initialised
-    val process = Await.result(schedulerResponse, Duration.Inf)
+    // Save actor reference in the local scope to forward the response
+    val senderRef = sender
 
-    process
+    schedulerResponse map (query => senderRef ! query)
+
+    sender ! "Ok"
+
   }
 }

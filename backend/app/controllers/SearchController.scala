@@ -38,14 +38,16 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
     /**
       * Extract the parameter query from the request body
       */
-    val message = request.body.asJson
-      .flatMap(js => (js \ "query").asOpt[String])
+    val body = request.body.asJson
+    val message = body.flatMap(js => (js \ "query").asOpt[String])
+    val author = body.flatMap(js => (js \ "author").asOpt[String])
+
 
     /**
       * Send the query to the search actor
       */
-    (searchActor ? SearchActor.SearchMessage(message.getOrElse("empty")))
-          .mapTo[Query]
+    (searchActor ? SearchActor.SearchMessage(message.getOrElse("empty query"), author.getOrElse("empty author")))
+          .mapTo[String]
           .map(resultat => Ok(
             JsObject(Seq(
               ("place", Json.toJson("Pau")),
