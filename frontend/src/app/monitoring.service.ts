@@ -1,17 +1,23 @@
 import { Injectable } from '@angular/core';
-import { QUERIES } from './mock-queries';
 import { Observable } from 'rxjs';
 import { Query } from './query';
 import { AUTHOR } from './mock-author';
+import { Http } from '@angular/http';
 
 @Injectable()
 export class MonitoringService {
 
-  constructor() {
+  constructor(private http: Http) {
   }
 
   getQueries(): Observable<Query[]> {
-    return Observable.from([QUERIES]);
+    let url = 'http://localhost:9000/monitoring/queries';
+
+    return this.http.get(url)
+      .map((response) => <Query[]> (response.json()))
+      .catch((error) => {
+        return Observable.throw(error)
+      });
   }
 
   getAuthor(): Observable<string> {

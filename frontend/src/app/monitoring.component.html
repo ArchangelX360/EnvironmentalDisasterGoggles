@@ -1,4 +1,5 @@
-<md-tab-group>
+<span *ngIf="queries.length == 0">No querie has been made.</span>
+<md-tab-group *ngIf="queries.length > 0">
   <md-tab label="All">
     <md-list>
       <app-query *ngFor="let query of queries"
