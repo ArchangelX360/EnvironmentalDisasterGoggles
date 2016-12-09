@@ -1,7 +1,7 @@
-GET     /                   controllers.Index.main
+GET     /                       controllers.Index.main
 
-POST    /search             controllers.SearchController.search
+POST    /search                 controllers.SearchController.search
 
-GET     /process            controllers.SchedulerController.getProcess
+GET     /monitoring/queries     controllers.SchedulerController.getProcess
 
-POST    /dev/fetch          controllers.FetcherController.fetch
+POST    /dev/fetch              controllers.FetcherController.fetchRGB

@@ -14,6 +14,7 @@ import play.api.mvc.{Action, Controller}
 
 import scala.concurrent.duration._
 
+
 /**
   * Handle all the query from the searchbar
   */
@@ -55,9 +56,8 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
               ("type", Json.toJson("Fire"))
             )
           )))
-
-
   }
+
 }
 
 

@@ -1,15 +1,11 @@
 package modules.imagefetcher
 
-import java.net.{URI, URL}
 
 import akka.actor.{Actor, Props}
-import modules.imagefetcher.FetcherActor.{FetchMessage, FetchResponse}
-import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
 object FetcherActor {
@@ -23,36 +19,49 @@ object FetcherActor {
   /**
     * Messages definitions
     */
-  case class FetchMessage(start: String, end: String, position: JsValue)
+  case class FetchRGB(start: String, delta: String, scale: Double = 1.0, polygon: JsValue)
   case class FetchResponse(url: String)
 }
 
 class FetcherActor(ws: WSClient, serverUrl: String) extends Actor {
 
   /**
+    * Import implicit definition
+    */
+  import FetcherActor._
+
+  /**
     * Message handling
     */
   override def receive: Receive = {
-    case FetchMessage(start, end, position) => sender ! fetchImage(start, end, position)
+    case message: FetchRGB => fetchImage(message)
     case _ => sender() ! "Image Fetcher not yet implemented"
   }
 
   /**
     * Request the flask server to process image from Earth Engine and return the url to download the image
+    *
     * @return
     */
-  def fetchImage(start: String, end: String, position: JsValue): FetchResponse = {
+  def fetchImage(message: FetchRGB) = {
 
     val request = ws.url(serverUrl + "/rgb")
         .withQueryString(
-          ("start", start),
-          ("end", end),
-          ("position", position.toString()))
+          ("start", message.start),
+          ("delta", message.delta),
+          ("scale", message.scale.toString),
+          ("polygon", message.polygon.toString))
           .get()
 
-
-    val url = Await.result(request, Duration.Inf).body
-    FetchResponse(url)
+    request.map ( response =>
+        if (response.status == 200) {
+          val url = (response.json \ "href").as[String]
+          sender ! FetchResponse(url)
+        } else {
+          val error = (response.json \ "error").asOpt[String]
+          sender ! "An error occurred during image fetching: " + error.getOrElse("no details")
+        }
+    )
   }
 
 }
