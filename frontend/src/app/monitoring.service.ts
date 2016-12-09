@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 import { Query } from './query';
 import { AUTHOR } from './mock-author';
 
-
 @Injectable()
 export class MonitoringService {
 
@@ -18,4 +17,5 @@ export class MonitoringService {
   getAuthor(): Observable<string> {
     return Observable.from([AUTHOR]);
   }
+
 }
