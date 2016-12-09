@@ -42,7 +42,6 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
     val message = body.flatMap(js => (js \ "query").asOpt[String])
     val author = body.flatMap(js => (js \ "author").asOpt[String])
 
-
     /**
       * Send the query to the search actor
       */
