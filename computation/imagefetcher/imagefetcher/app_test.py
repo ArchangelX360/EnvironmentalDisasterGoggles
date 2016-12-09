@@ -8,6 +8,8 @@ import unittest
 
 import app
 
+FLAGS = gflags.FLAGS
+
 VALID_DATE = "2015-04-01"
 VALID_POLYGON = json.dumps([[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]])
 
@@ -21,14 +23,14 @@ def shutdown():
 class RGBRouteTest(unittest.TestCase):
     """Test the /rgb route is correctly handled."""
 
-    server_address = ("127.0.0.1", 5000)
-    base_url = "http://%s:%s/rgb" % (server_address)
-
     @classmethod
     def setUpClass(cls):
-        """Setup the Flask server and start listening for requests."""
-        # We need to load the flags library before running the tests.
+        """Set up the Flask server and start listening for requests."""
+        # Generate server address, based on port flag's default value.
         gflags.FLAGS([])
+        cls.server_address = ("127.0.0.1", FLAGS.port)
+        cls.base_url = "http://%s:%s/rgb" % (cls.server_address)
+
         cls.thread = threading.Thread(target=app.app.run,
                 args=cls.server_address)
         cls.thread.start()
