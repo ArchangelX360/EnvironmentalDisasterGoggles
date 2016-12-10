@@ -20,11 +20,11 @@ import ee
 import gflags
 import json
 
+from dateutil.relativedelta import relativedelta
 from flask import Flask
 from flask import jsonify
 
 from fetcher import ImageFetcher
-from utils import DateDelta
 from utils import Error
 from utils import Parser
 from utils import get_param
@@ -60,7 +60,7 @@ def handle_error(error):
 @get_param("date", parser=Parser.date, required=True)
 @get_param("polygon", parser=Parser.polygon, required=True)
 @get_param("scale", parser=float, default=100)
-@get_param("delta", parser=Parser.date_delta, default=DateDelta(0, 3, 0))
+@get_param("delta", parser=Parser.date_delta, default=relativedelta(months=3))
 def rgb_handler(date, polygon, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
@@ -81,7 +81,8 @@ def rgb_handler(date, polygon, scale, delta):
             error (str):
                 In case of error, displays the error message.
     """
-    start_date, end_date = delta.generate_start_end_date(date)
+    start_date = date - delta
+    end_date = date + delta
     url = fetcher.GetRGBImage(start_date, end_date, polygon, scale)
     return jsonify(href=url)
 

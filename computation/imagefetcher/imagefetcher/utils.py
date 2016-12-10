@@ -9,6 +9,7 @@ import functools
 import json
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from flask import request
 
 
@@ -70,30 +71,6 @@ def get_param(param_name, parser=str, required=False, default=None):
     return decorator
 
 
-class DateDelta:
-    """Represent a date delta"""
-
-    def __init__(self, year, month, day):
-        """Constructor. Registers the parameters in instance."""
-        self.year = year
-        self.month = month
-        self.day = day
-
-    def generate_start_end_date(self, date):
-        """Generate a start and end date from a datetime object.
-
-        Parameters:
-            date: A date time object, on which we apply the date delta.
-        Returns:
-            A start date (date - delta) and end date (date + delta).
-        """
-        start_date = datetime(date.year - self.year,
-            date.month - self.month, date.day - self.day)
-        end_date = datetime(date.year + self.year,
-            date.month + self.month, date.day + self.day)
-        return start_date, end_date
-
-
 class Parser:
     """Set of utilities used to parse query parameters."""
 
@@ -151,9 +128,9 @@ class Parser:
         Parameters:
             entry: a string supposed to contain a date delta.
         Returns:
-            A DateDelta object generated from the entry.
+            A relativedelta object generated from the entry.
         Raises:
             ValueError: if the date delta is invalid.
         """
         year, month, day = [int(t) for t in entry.split("-")]
-        return DateDelta(year, month, day)
+        return relativedelta(years=year, months=month, days=day)
