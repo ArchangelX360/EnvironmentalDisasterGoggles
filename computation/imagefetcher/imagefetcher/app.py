@@ -20,6 +20,7 @@ import ee
 import gflags
 import json
 
+from datetime import date
 from dateutil.relativedelta import relativedelta
 from flask import Flask
 from flask import jsonify
@@ -90,7 +91,7 @@ def rgb_handler(date, polygon, scale, delta):
 @app.route('/forestDiff')
 @get_param('polygon', parser=Parser.polygon, required=True)
 @get_param('start', parser=int, default=2000)
-@get_param('stop', parser=int, default=2016)
+@get_param('stop', parser=int, default=date.today().year)
 @get_param('scale', parser=float, default=500)
 def forest_diff_handler(polygon, start, stop, scale):
     """Generates a RGB image of an are representing {de,re}forestation.
@@ -109,7 +110,7 @@ def forest_diff_handler(polygon, start, stop, scale):
             Reference year. Must be greater or equal than 2000.
         stop (int):
             Year on which we will subtract the data generated from start year.
-            Must be greater than start year, and lower than 2016.
+            Must be greater than start year, and lower than current year.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
             better.
@@ -120,9 +121,12 @@ def forest_diff_handler(polygon, start, stop, scale):
             error (str):
                 In case of error, displays the error message.
     """
+    current_year = date.today().year
     try:
-        assert 2000 <= start < 2016, "Start year must be within 2000 and 2016"
-        assert start < stop <= 2016, "Stop year must be within start and 2016"
+        assert 2000 <= start < current_year, ("Start year must be within 2000 "
+            "and %s" % (current_year - 1))
+        assert start < stop <= current_year, ("Stop year must be within start "
+            "and %s" % current_year)
     except AssertionError as e:
         raise Error(str(e))
 
