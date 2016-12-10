@@ -189,10 +189,10 @@ class ImageFetcher:
 
         Parameters:
             start_year: integer representing the reference year. Must be
-                greater or equal than 2000.
+                greater than or equal to 2000.
             end_year: integer representing the year on which we will subtract
                 the data generated from the start_year. Must be greater than
-                start_year, and lesser or equal to 2016.
+                start_year, and lower than or equal to 2016.
             polygon: area to fetch; a list of latitude and longitude making a
                 polygon.
             scale: image resolution, in meters per pixels.

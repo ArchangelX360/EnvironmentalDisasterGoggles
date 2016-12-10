@@ -107,7 +107,7 @@ def forest_diff_handler(polygon, start, stop, scale):
         polygon (list[list[int]]):
             Area to visualize. Required.
         start (int):
-            Reference year. Must be greater or equal than 2000.
+            Reference year. Must be greater than or equal to 2000.
         stop (int):
             Year on which we will subtract the data generated from start year.
             Must be greater than start year, and lower than current year.
