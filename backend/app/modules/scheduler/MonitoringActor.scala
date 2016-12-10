@@ -41,6 +41,7 @@ class MonitoringActor extends Actor {
   override def receive: Receive = {
     case StartProcess(query, author) => sender ! startProcess(query, author)
     case ListProcess(status) => sender ! listProcess(status)
+    case task: StartTask => startTask(task)
     case _ => ()
   }
 
@@ -53,7 +54,7 @@ class MonitoringActor extends Actor {
       name = query,
       author = author,
       status = "started",
-      tasks = List.empty)
+      tasks = ListBuffer.empty)
 
     processList += process
 
@@ -67,6 +68,26 @@ class MonitoringActor extends Actor {
   def listProcess(status: Option[String]): Seq[Query] = {
     if (status.isDefined) processList.filter(process => process.status == status.get)
     else processList
+  }
+
+  /**
+    * Create a new task and match it with a process, notify the sender with the new task instance
+    * @param newTask Information about the new Task, including name and process id
+    */
+  def startTask(newTask: StartTask): Unit = {
+    val process = processList.find(process => process.id == newTask.processId)
+    val task = Task(
+      id = String.valueOf(Math.random()),
+      name = newTask.name,
+      status = "Started",
+      progress = 0
+    )
+
+    if (process.isDefined) {
+      process.get.tasks.+=(task)
+    }
+
+    sender ! task
   }
 
 }

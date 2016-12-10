@@ -5,12 +5,11 @@ import java.security.InvalidParameterException
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import models.Query
-import modules.scheduler.MonitoringActor
-
-import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, _}
+import models.{Query, Task}
+import modules.scheduler.MonitoringActor.{StartProcess, StartTask}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+import scala.concurrent.duration._
 
 object SearchActor {
   def props(scheduler: ActorRef) = Props(new SearchActor(scheduler))
@@ -45,14 +44,13 @@ class SearchActor (scheduler: ActorRef) extends Actor {
     * @return A confirmation that the message is scheduled for processing
     */
   def processMessage(message: String, author: String) = {
-    val schedulerResponse = (scheduler ? MonitoringActor.StartProcess(message, author)).mapTo[Query]
+    val schedulerResponse = (scheduler ? StartProcess(message, author)).mapTo[Query]
 
-    // Save actor reference in the local scope to forward the response
-    val senderRef = sender
+    val taskResponse = schedulerResponse flatMap (query =>
+      (scheduler ? StartTask(query.id, "Search task")).mapTo[Task]
+    )
 
-    schedulerResponse map (query => senderRef ! query)
-
-    sender ! "Ok"
+    sender ! "Started"
 
   }
 }
