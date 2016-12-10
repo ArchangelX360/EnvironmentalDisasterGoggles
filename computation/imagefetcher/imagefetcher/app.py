@@ -25,9 +25,9 @@ from flask import Flask
 from flask import jsonify
 
 from fetcher import ImageFetcher
-from utils import Error
-from utils import Parser
-from utils import get_param
+from imagefetcher.utils import Error
+from imagefetcher.utils import Parser
+from imagefetcher.utils import get_param
 
 
 app = Flask(__name__)
@@ -134,9 +134,3 @@ def forest_diff_handler(polygon, start, stop, scale):
 def main_route():
     """Simple route useful for checking if the server is alive."""
     return ""
-
-
-if __name__ == "__main__":
-    import sys
-    FLAGS(sys.argv)
-    app.run(host=FLAGS.host, port=FLAGS.port, debug=FLAGS.debug)
