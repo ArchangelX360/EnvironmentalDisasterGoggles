@@ -46,7 +46,7 @@ class FetcherActor(ws: WSClient, serverUrl: String) extends Actor {
   def fetchImage(message: FetchRGB) = {
 
     val initialParams = Seq(
-      ("start", message.start),
+      ("date", message.start),
       ("delta", message.delta),
       ("polygon", message.polygon.toString))
 
@@ -58,13 +58,15 @@ class FetcherActor(ws: WSClient, serverUrl: String) extends Actor {
         .withQueryString(params:_*)
         .get()
 
+    val currentSender = sender
+
     request.map ( response =>
         if (response.status == 200) {
           val url = (response.json \ "href").as[String]
-          sender ! FetchResponse(url)
+          currentSender ! FetchResponse(url)
         } else {
           val error = (response.json \ "error").asOpt[String]
-          sender ! "An error occurred during image fetching: " + error.getOrElse("no details")
+          currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
         }
     )
   }
