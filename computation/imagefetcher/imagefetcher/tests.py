@@ -7,7 +7,7 @@ import threading
 import unittest
 
 import app
-from utils import Parser
+from imagefetcher.utils import Parser
 
 FLAGS = gflags.FLAGS
 

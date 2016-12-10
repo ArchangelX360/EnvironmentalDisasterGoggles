@@ -25,3 +25,16 @@ ee.Initialize()
 image = ee.Image('srtm90_v4')
 print(image.getInfo())
 ```
+
+**Important note**: whenever an update is done on the code, you may need to
+re-run the installation.
+
+## Usage
+
+Once you installed the module, you can run it with the following command:
+
+    python2 -m imagefetcher [options...]
+
+You can also run tests if needed:
+
+    python2 -m imagefetcher.tests
