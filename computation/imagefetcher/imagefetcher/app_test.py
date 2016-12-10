@@ -7,6 +7,7 @@ import threading
 import unittest
 
 import app
+from utils import Parser
 
 FLAGS = gflags.FLAGS
 
@@ -128,6 +129,26 @@ class FlaskApplicationTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200, "Server sent error: %s" %
             response.json().get("error", "[internal error]"))
         self.assertTrue(self.fetcher.GetRGBImage.called)
+
+    def test_rgb_date_delta_supported(self):
+        """Test if date delta is fully supported."""
+        date_parameters = [
+            ("2015-12-01", "0000-1-0"),
+            ("2015-12-31", "0000-0-1"),
+            ("2000-01-01", "0000-3-0"),
+            ("2000-01-01", "0000-0-1"),
+            ("2000-01-01", "0000-1-1"),
+        ]
+
+        for date, delta in date_parameters:
+            response = self.do_request("/rgb", params={
+                'date': date,
+                'polygon': VALID_POLYGON,
+                'delta': delta,
+            })
+            self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+                response.json().get("error", "[internal error]"))
+            self.assertTrue(self.fetcher.GetRGBImage.called)
 
     def test_forest_diff_missing_arguments(self):
         """Test if missing arguments are correctly handled."""
