@@ -1,0 +1,7 @@
+.search-result-dialog {
+  text-align: center;
+}
+
+.search-result-dialog > button {
+  margin-top: 20px;
+}

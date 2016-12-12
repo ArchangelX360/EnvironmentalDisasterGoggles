@@ -16,11 +16,13 @@ import { MonitoringService } from './monitoring.service';
 import { AuthorQueriesPipe } from './author-queries.pipe';
 import { QueryComponent } from './query.component';
 import { TaskComponent } from './task.component';
+import {SearchResultDialog} from "./search-result.component";
 
 @NgModule({
   declarations: [
     AppComponent,
     SearchBarComponent,
+    SearchResultDialog,
     PageNotFoundComponent,
     ViewerComponent,
     MonitoringComponent,
@@ -39,6 +41,9 @@ import { TaskComponent } from './task.component';
     QuerySenderService,
     appRoutingProviders,
     MonitoringService
+  ],
+  entryComponents: [
+    SearchResultDialog
   ],
   bootstrap: [AppComponent]
 })
