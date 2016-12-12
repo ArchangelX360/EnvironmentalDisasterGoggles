@@ -34,10 +34,6 @@ from imagefetcher.utils import get_param
 app = Flask(__name__)
 
 FLAGS = gflags.FLAGS
-gflags.DEFINE_string("default_delta", "0000-03-00", "default range "
-        "within images are still considered as 'close to the date'.")
-gflags.DEFINE_string("default_scale", "100", "default image scale, "
-        "in meter per pixels (lower is better).")
 gflags.DEFINE_string("host", "0.0.0.0", "Server listening host.")
 gflags.DEFINE_integer("port", 5000, "Server listening port.")
 gflags.DEFINE_boolean("debug", False, "Run in debug mode.")
@@ -59,17 +55,20 @@ def handle_error(error):
 
 @app.route('/rgb')
 @get_param("date", parser=Parser.date, required=True)
-@get_param("polygon", parser=Parser.polygon, required=True)
-@get_param("scale", parser=float, default=100)
+@get_param("polygon", parser=Parser.polygon, default=None)
+@get_param("country", parser=str, default=None)
+@get_param("scale", parser=float, default=500)
 @get_param("delta", parser=Parser.date_delta, default=relativedelta(months=3))
-def rgb_handler(date, polygon, scale, delta):
+def rgb_handler(date, polygon, country, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
     GET query parameters:
         date (yyyy-mm-dd):
             Average date of the image to fetch. Required.
         polygon (list[list[int]]):
-            Area to visualize. Required.
+            Area to visualize. Required, or country must be specified.
+        country (str):
+            Country to visualize. Required, or polygon must be specified.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
             better.
@@ -82,18 +81,28 @@ def rgb_handler(date, polygon, scale, delta):
             error (str):
                 In case of error, displays the error message.
     """
+    if country is None and polygon is None:
+        raise Error("No area parameter (country or polygon) sent.")
+    if country is not None:
+        if polygon is not None:
+            raise Error("Country and polygon parameters are mutually exclusive.")
+        geometry = fetcher.CountryToGeometry(country)
+    else:
+        geometry = fetcher.VerticesToGeometry(polygon)
+
     start_date = date - delta
     end_date = date + delta
-    url = fetcher.GetRGBImage(start_date, end_date, polygon, scale)
+    url = fetcher.GetRGBImage(start_date, end_date, geometry, scale)
     return jsonify(href=url)
 
 
 @app.route('/forestDiff')
-@get_param('polygon', parser=Parser.polygon, required=True)
+@get_param('polygon', parser=Parser.polygon, default=None)
+@get_param('country', parser=str, default=None)
 @get_param('start', parser=int, default=2000)
 @get_param('stop', parser=int, default=date.today().year)
 @get_param('scale', parser=float, default=500)
-def forest_diff_handler(polygon, start, stop, scale):
+def forest_diff_handler(polygon, country, start, stop, scale):
     """Generates a RGB image of an are representing {de,re}forestation.
 
     Generates a RGB image where red green and blue channels correspond
@@ -105,7 +114,9 @@ def forest_diff_handler(polygon, start, stop, scale):
 
     GET Parameters:
         polygon (list[list[int]]):
-            Area to visualize. Required.
+            Area to visualize. Required, or country must be specified.
+        country (str):
+            Country to visualize. Required, or polygon must be specified.
         start (int):
             Reference year. Must be greater than or equal to 2000.
         stop (int):
@@ -121,6 +132,15 @@ def forest_diff_handler(polygon, start, stop, scale):
             error (str):
                 In case of error, displays the error message.
     """
+    if country is None and polygon is None:
+        raise Error("No area parameter (country or polygon) sent.")
+    if country is not None:
+        if polygon is not None:
+            raise Error("Country and polygon parameters are mutually exclusive.")
+        geometry = fetcher.CountryToGeometry(country)
+    else:
+        geometry = fetcher.VerticesToGeometry(polygon)
+
     current_year = date.today().year
     try:
         assert 2000 <= start < current_year, ("Start year must be within 2000 "
@@ -130,7 +150,7 @@ def forest_diff_handler(polygon, start, stop, scale):
     except AssertionError as e:
         raise Error(str(e))
 
-    url = fetcher.GetForestIndicesImage(start, stop, polygon, scale)
+    url = fetcher.GetForestIndicesImage(start, stop, geometry, scale)
     return jsonify(href=url)
 
 

@@ -83,13 +83,11 @@ class ImageFetcher:
                 .select(['Land_Cover_Type_1'])
                 .neq(0))
 
-    def _GetRGBImage(self, start_date, end_date, polygon, scale):
+    def _GetRGBImage(self, start_date, end_date, geometry, scale):
         """Generates a RGB satellite image of an area within two dates.
 
         See :meth:`GetRGBImage` for information about the parameters.
         """
-        geometry = ee.Geometry.Polygon([polygon])
-
         # Get the Landsat 8 collection.
         # TODO(funkysayu) might be good taking a look at other ones.
         raw_collection = (ee.ImageCollection('LANDSAT/LC8_L1T')
@@ -113,12 +111,42 @@ class ImageFetcher:
             'format': 'png',
         })
 
-    def _GetForestIndicesImage(self, start_year, end_year, polygon, scale):
+    @staticmethod
+    def CountryToGeometry(country_name):
+        """Converts a country name to a polygon representation.
+
+        Parameters:
+            country_name: name of the country.
+        Returns:
+            A Geometry object representing area of the country.
+        """
+        feature_id = 'ft:1tdSwUL7MVpOauSgRzqVTOwdfy17KDbw-1d9omPw'
+        countries = ee.FeatureCollection(feature_id)
+        name = country_name.capitalize()
+        server_geo = countries.filter(ee.Filter.eq('Country', name)).geometry()
+
+        # At this point, the geometry is still server side. As we need to
+        # generate the geo json object in order to specify a region to fetch,
+        # we will dump the object data and put it in a new, client side
+        # geometry.
+        return ee.Geometry(server_geo.getInfo())
+
+    @staticmethod
+    def VerticesToGeometry(vertices):
+        """Converts a list of vertices to an Earth Engine geometry.
+
+        Parameters:
+            vertices: A list of vertices representing a polygon.
+        Returns:
+            The Geometry object corresponding to these vertices.
+        """
+        return ee.Geometry.Polygon(vertices)
+
+    def _GetForestIndicesImage(self, start_year, end_year, geometry, scale):
         """Generates a RGB image representing forestation within two years
 
         See :meth:`GetForestIndicesImage` for information about the parameters.
         """
-        geometry = ee.Geometry.Polygon([polygon])
         mask = self._load_land_mask()
 
         # Within many datasets, the MODIS/MOD13A1 is the most accurate on the
@@ -146,13 +174,14 @@ class ImageFetcher:
         scaled_mask = mask.where(mask.eq(0), 2000).where(mask.eq(1), 0)
 
         rgb_image = ee.Image.rgb(negatives, positives, scaled_mask)
-        return rgb_image.visualize(min=0, max=2000).getDownloadURL({
+        clipped = rgb_image.clip(geometry)
+        return clipped.visualize(min=0, max=2000).getDownloadURL({
             'region': geometry.toGeoJSONString(),
             'scale': scale,
             'format': 'png',
         })
 
-    def GetRGBImage(self, start_date, end_date, polygon, scale=100):
+    def GetRGBImage(self, start_date, end_date, geometry, scale=100):
         """Generates a RGB satellite image of an area within two dates.
 
         Parameters:
@@ -160,16 +189,15 @@ class ImageFetcher:
                 must have a later date than this one.
             end_date: images in the collection generating the final picture
                 must have a earlier date than this one.
-            polygon: area to fetch; a list of latitude and longitude making a
-                polygon.
+            geometry: area to fetch. Earth Enging Geometry object.
             scale: image resolution, in meters per pixels.
         Returns:
             An URL to the generated image.
         """
         with self.rate_limiter:
-            return self._GetRGBImage(start_date, end_date, polygon, scale)
+            return self._GetRGBImage(start_date, end_date, geometry, scale)
 
-    def GetForestIndicesImage(self, start_year, end_year, polygon, scale):
+    def GetForestIndicesImage(self, start_year, end_year, geometry, scale):
         """Generates a RGB image representing forestation within two years.
 
         Generates a RGB image where red green and blue channels correspond
@@ -193,12 +221,11 @@ class ImageFetcher:
             end_year: integer representing the year on which we will subtract
                 the data generated from the start_year. Must be greater than
                 start_year, and lower than or equal to the current year.
-            polygon: area to fetch; a list of latitude and longitude making a
-                polygon.
+            geometry: area to fetch; Earth Engin Geometry object.
             scale: image resolution, in meters per pixels.
         Returns:
             An URL to the generated image.
         """
         with self.rate_limiter:
-            return self._GetForestIndicesImage(start_year, end_year, polygon,
+            return self._GetForestIndicesImage(start_year, end_year, geometry,
                 scale)
