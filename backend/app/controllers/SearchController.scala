@@ -5,20 +5,20 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import models.Query
 import modules.scheduler.SchedulerService
 import modules.searchengine.SearchActor
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 
 import scala.concurrent.duration._
-
 
 /**
   * Handle all the query from the searchbar
   */
 class SearchController @Inject() (system: ActorSystem, schedulerService: SchedulerService) extends Controller {
+
+  import SearchActor._
 
   /**
     * Handle all the search requests (including NLP processing)
@@ -46,15 +46,8 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
       * Send the query to the search actor
       */
     (searchActor ? SearchActor.SearchMessage(message.getOrElse("empty query"), author.getOrElse("empty author")))
-          .mapTo[String]
-          .map(resultat => Ok(
-            JsObject(Seq(
-              ("place", Json.toJson("Pau")),
-              ("from", Json.toJson("2007-04-05T14:30Z")),
-              ("to", Json.toJson("2008-04-05T14:30Z")),
-              ("type", Json.toJson("Fire"))
-            )
-          )))
+          .mapTo[SearchResponse]
+          .map(response => Ok(Json.toJson(response)))
 
   }
 

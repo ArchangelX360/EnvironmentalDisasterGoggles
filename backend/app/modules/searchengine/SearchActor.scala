@@ -8,6 +8,7 @@ import akka.util.Timeout
 import models.{Query, Task}
 import modules.scheduler.MonitoringActor.{StartProcess, StartTask}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.{Json, Writes}
 
 import scala.concurrent.duration._
 
@@ -15,6 +16,9 @@ object SearchActor {
   def props(scheduler: ActorRef) = Props(new SearchActor(scheduler))
 
   case class SearchMessage(message: String, author: String)
+  case class SearchResponse(place: String, from: String, to: String, event:String)
+
+  implicit val responseWriters: Writes[SearchResponse] = Json.writes[SearchResponse]
 }
 
 class SearchActor (scheduler: ActorRef) extends Actor {
@@ -50,7 +54,15 @@ class SearchActor (scheduler: ActorRef) extends Actor {
       (scheduler ? StartTask(query.id, "Search task")).mapTo[Task]
     )
 
-    sender ! "Started"
+    val parser = new NLPParser(message)
+
+    val dates = parser.extractDate()
+
+    sender ! SearchResponse(
+      place = "Pau",
+      from = dates.headOption.getOrElse(""),
+      to = dates.tail.headOption.getOrElse(""),
+      event = "Fire")
 
   }
 }
