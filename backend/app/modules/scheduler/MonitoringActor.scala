@@ -54,7 +54,7 @@ class MonitoringActor extends Actor {
       name = query,
       author = author,
       status = "started",
-      tasks = ListBuffer.empty)
+      tasks = mutable.ListBuffer.empty)
 
     processList += process
 
