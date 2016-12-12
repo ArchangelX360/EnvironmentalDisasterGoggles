@@ -2,3 +2,20 @@
   margin-top:20px;
   margin-bottom: 20px;
 }
+
+.search-bar {
+  margin-top: 30px;
+  margin-left: 20px;
+}
+
+.monitoring {
+  margin-top: 30px;
+}
+
+.monitoring .md-tab-header {
+  border-top: 1px solid #e0e0e0;
+}
+
+.monitoring .md-tab-active:not(.md-tab-body) {
+  background-color: rgba(197, 202, 233, 0.3);
+}
