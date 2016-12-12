@@ -11,6 +11,8 @@ export class MonitoringComponent implements OnInit {
 
   private queries: Query[];
   private userToken: string;
+  private intervalID: number;
+  private intervalValue: number = 3000;
 
   constructor(private monitoringService: MonitoringService,
               private mdSnackBar: MdSnackBar) {
@@ -20,18 +22,32 @@ export class MonitoringComponent implements OnInit {
     this.queries = [];
     this.userToken = '';
 
+    // Initialization of Monitoring data
+    this.getMonitoringData();
+
+    // Refreshing Monitoring data with {intervalValue} millisecond interval
+    this.intervalID = window.setInterval(() => {
+      this.getMonitoringData();
+    }, this.intervalValue);
+  }
+
+  ngOnDestroy() {
+    if (this.intervalID) {
+      clearInterval(this.intervalID);
+    }
+  }
+
+  /**
+   * Get Queries and Authors in order to display Monitoring data
+   */
+  getMonitoringData() {
     this.monitoringService.getQueries().subscribe(
       response => this.queries = response,
-      error => {
-        this.errorHandler(error);
-      }
+      error => this.errorHandler(error)
     );
-
     this.monitoringService.getAuthor().subscribe(
       response => this.userToken = response,
-      error => {
-        this.errorHandler(error)
-      }
+      error => this.errorHandler(error)
     );
   }
 

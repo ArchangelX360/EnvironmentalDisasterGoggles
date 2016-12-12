@@ -6,6 +6,7 @@ import { MonitoringComponent } from './monitoring.component';
 
 
 const appRoutes: Routes = [
+  {path: '', redirectTo: '/viewer', pathMatch: 'full'},
   {path: 'viewer', component: ViewerComponent},
   {path: 'monitoring', component: MonitoringComponent},
   {path: '**', component: PageNotFoundComponent}

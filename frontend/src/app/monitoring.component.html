@@ -1,15 +1,17 @@
-<span *ngIf="queries.length == 0">No querie has been made.</span>
-<md-tab-group *ngIf="queries.length > 0">
-  <md-tab label="All">
-    <md-list>
-      <app-query *ngFor="let query of queries"
-                 [query]="query"></app-query>
-    </md-list>
-  </md-tab>
-  <md-tab label="Self">
-    <md-list>
-      <app-query *ngFor="let query of queries | authorQueries:userToken"
-                 [query]="query"></app-query>
-    </md-list>
-  </md-tab>
-</md-tab-group>
+<section class="monitoring">
+  <span *ngIf="queries.length == 0">No query has been made.</span>
+  <md-tab-group *ngIf="queries.length > 0">
+    <md-tab label="All">
+      <md-list>
+        <app-query *ngFor="let query of queries"
+                   [query]="query"></app-query>
+      </md-list>
+    </md-tab>
+    <md-tab label="Self">
+      <md-list>
+        <app-query *ngFor="let query of queries | authorQueries:userToken"
+                   [query]="query"></app-query>
+      </md-list>
+    </md-tab>
+  </md-tab-group>
+</section>
