@@ -4,6 +4,7 @@ import json
 import mock
 import requests
 import threading
+import time
 import unittest
 
 import app
@@ -35,6 +36,7 @@ class FlaskApplicationTest(unittest.TestCase):
         cls.thread = threading.Thread(target=app.app.run,
             args=cls.server_address)
         cls.thread.start()
+        time.sleep(1)  # Wait the server starts
 
         # Save the fetcher previously generated in the app module. We are going
         # to override it. Everytime.
@@ -73,13 +75,26 @@ class FlaskApplicationTest(unittest.TestCase):
         response = self.do_request()
         self.assertEquals(response.status_code, 200)
 
-    def test_rgb_missing_arguments(self):
+    def test_rgb_invalid_parameters(self):
         """Test if missing arguments are correctly handled."""
         response = self.do_request("/rgb")
         self.assertEquals(response.status_code, 400)
         response = self.do_request("/rgb", params={'date': '2000-01-01'})
         self.assertEquals(response.status_code, 400)
         response = self.do_request("/rgb", params={'polygon': VALID_POLYGON})
+        self.assertEquals(response.status_code, 400)
+        response = self.do_request("/rgb", params={'country': 'congo'})
+        self.assertEquals(response.status_code, 400)
+        response = self.do_request("/rgb", params={
+            'polygon': VALID_POLYGON,
+            'country': 'congo',
+        })
+        self.assertEquals(response.status_code, 400)
+        response = self.do_request("/rgb", params={
+            'date': '2000-01-01',
+            'polygon': VALID_POLYGON,
+            'country': 'congo',
+        })
         self.assertEquals(response.status_code, 400)
 
     def test_rgb_invalid_date(self):
@@ -106,7 +121,7 @@ class FlaskApplicationTest(unittest.TestCase):
             })
             self.assertEqual(response.status_code, 400)
 
-    def test_rgb_valid_simple_query(self):
+    def test_rgb_valid_simple_polygon_query(self):
         """Test a valid query."""
         self.fetcher.GetRGBImage.return_value = "http://something.com/foo"
         response = self.do_request("/rgb", params={
@@ -115,6 +130,19 @@ class FlaskApplicationTest(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 200, "Server sent error: %s" %
             response.json().get("error", "[internal error]"))
+        self.assertTrue(self.fetcher.VerticesToGeometry.called)
+        self.assertTrue(self.fetcher.GetRGBImage.called)
+
+    def test_rgb_valid_simple_country_query(self):
+        """Test a valid query."""
+        self.fetcher.GetRGBImage.return_value = "http://something.com/foo"
+        response = self.do_request("/rgb", params={
+            'date': VALID_DATE,
+            'country': 'congo',
+        })
+        self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+            response.json().get("error", "[internal error]"))
+        self.assertTrue(self.fetcher.CountryToGeometry.called)
         self.assertTrue(self.fetcher.GetRGBImage.called)
 
     def test_rgb_valid_complex_query(self):
@@ -150,9 +178,14 @@ class FlaskApplicationTest(unittest.TestCase):
                 response.json().get("error", "[internal error]"))
             self.assertTrue(self.fetcher.GetRGBImage.called)
 
-    def test_forest_diff_missing_arguments(self):
+    def test_forest_diff_invalid_parameters(self):
         """Test if missing arguments are correctly handled."""
         response = self.do_request("/forestDiff")
+        self.assertEquals(response.status_code, 400)
+        response = self.do_request("/forestDiff", {
+            'polygon': VALID_POLYGON,
+            'country': 'congo',
+        })
         self.assertEquals(response.status_code, 400)
 
     def test_forest_diff_invalid_polygon(self):
@@ -193,7 +226,7 @@ class FlaskApplicationTest(unittest.TestCase):
             response = self.do_request("/forestDiff", params=params)
             self.assertEqual(response.status_code, 400)
 
-    def test_forest_diff_valid_simple_query(self):
+    def test_forest_diff_valid_simple_polygon_query(self):
         """Test a valid query."""
         self.fetcher.GetForestIndicesImage.return_value = "http://foo.com/bar"
         response = self.do_request("/forestDiff", params={
@@ -201,6 +234,18 @@ class FlaskApplicationTest(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 200, "Server sent error: %s" %
             response.json().get("error", "[internal error]"))
+        self.assertTrue(self.fetcher.VerticesToGeometry.called)
+        self.assertTrue(self.fetcher.GetForestIndicesImage.called)
+
+    def test_forest_diff_valid_simple_country_query(self):
+        """Test a valid query."""
+        self.fetcher.GetForestIndicesImage.return_value = "http://foo.com/bar"
+        response = self.do_request("/forestDiff", params={
+            'country': 'congo',
+        })
+        self.assertEqual(response.status_code, 200, "Server sent error: %s" %
+            response.json().get("error", "[internal error]"))
+        self.assertTrue(self.fetcher.CountryToGeometry.called)
         self.assertTrue(self.fetcher.GetForestIndicesImage.called)
 
     def test_forest_diff_valid_complex_query(self):
