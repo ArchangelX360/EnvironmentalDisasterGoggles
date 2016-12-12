@@ -5,6 +5,8 @@
 @import 'toaster.css';
 @import 'md-table.css';
 @import 'viewer.css';
+@import 'search-result.css';
+
 
 html, body {
     width: 100%;
