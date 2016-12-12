@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { SearchBarComponent } from './search-bar.component';
 
 @Component({
   selector: 'app-viewer',
@@ -7,16 +6,10 @@ import { SearchBarComponent } from './search-bar.component';
 })
 export class ViewerComponent implements OnInit {
 
-  response: any;
-
   constructor() {
   }
 
   ngOnInit() {
   }
 
-  queryResponse(response) {
-    console.log("Response in viewer : ", response);
-    this.response = response;
-  }
 }

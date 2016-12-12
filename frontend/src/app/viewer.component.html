@@ -1,28 +1,5 @@
 <app-search-bar (queryResponse)="queryResponse($event)"></app-search-bar>
 
-<section class="search-response">
-  <table *ngIf="response" class="bordered striped centered-th">
-    <thead>
-      <tr>
-        <th *ngIf="response.status">Status</th>
-        <th *ngIf="response.place">Place</th>
-        <th *ngIf="response.from">From</th>
-        <th *ngIf="response.to">To</th>
-        <th *ngIf="response.type">Type</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td *ngIf="response.status">{{response.status}}</td>
-        <td *ngIf="response.place">{{response.place}}</td>
-        <td *ngIf="response.from">{{response.from}}</td>
-        <td *ngIf="response.to">{{response.to}}</td>
-        <td *ngIf="response.type">{{response.type}}</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
 <section>
   Map and stuff goes here!
 </section>
