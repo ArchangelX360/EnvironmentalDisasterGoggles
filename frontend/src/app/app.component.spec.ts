@@ -2,7 +2,7 @@
 
 import { TestBed, async } from '@angular/core/testing';
 import { AppComponent } from './app.component';
-import { SearchBarComponent } from './search-bar.component';
+import { SearchBarComponent } from './search-bar/search-bar.component';
 import { MaterialModule } from '@angular/material';
 
 describe('AppComponent', () => {

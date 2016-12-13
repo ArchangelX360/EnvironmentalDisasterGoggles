@@ -23,7 +23,8 @@
     </tbody>
   </table>
 
-  <button type="button" md-raised-button color="primary" (click)="dialogRef.close('no')">OK</button>
+  <button type="button" md-raised-button (click)="dialogRef.close(false)">Cancel</button>
+  <button class="green" type="button" md-raised-button (click)="dialogRef.close(true)">Start request</button>
 
 </section>
 

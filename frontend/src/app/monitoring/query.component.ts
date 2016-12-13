@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Query } from './query';
+import { Query } from '../models/query';
 
 @Component({
   selector: 'app-query',

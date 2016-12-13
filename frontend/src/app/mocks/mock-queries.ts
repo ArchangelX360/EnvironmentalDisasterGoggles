@@ -1,4 +1,4 @@
-import { Query } from './query';
+import { Query } from '../models/query';
 
 /** Mocks queries array that would retrieve at route /monitoring/queries */
 export let QUERIES: Query[] = [

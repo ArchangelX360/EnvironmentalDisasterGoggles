@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Query } from './query';
-import { AUTHOR } from './mock-author';
+import { Query } from '../models/query';
+import { AUTHOR } from '../mocks/mock-author';
 import { Http } from '@angular/http';
 
 @Injectable()

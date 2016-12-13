@@ -1,11 +1,11 @@
 /* You can add global styles to this file, and also import other style files */
 @import '~@angular/material/core/theming/prebuilt/indigo-pink.css';
-@import 'spinner.css';
+@import 'css/spinner.css';
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
-@import 'toaster.css';
-@import 'md-table.css';
-@import 'viewer.css';
-@import 'search-result.css';
+@import 'css/toaster.css';
+@import 'css/md-table.css';
+@import 'css/viewer.css';
+@import 'css/search-result.css';
 
 
 html, body {

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Query } from './query';
-import { MonitoringService } from './monitoring.service';
+import { Query } from '../models/query';
+import { MonitoringService } from '../services/monitoring.service';
 import { MdSnackBar } from '@angular/material';
 
 @Component({

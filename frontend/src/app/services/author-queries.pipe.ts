@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Query } from './query';
+import { Query } from '../models/query';
 
 @Pipe({
   name: 'authorQueries'

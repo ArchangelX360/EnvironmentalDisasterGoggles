@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewContainerRef} from '@angular/core';
-import { QuerySenderService } from './query-sender.service';
+import { QuerySenderService } from '../services/query-sender.service';
 import {MdSnackBar, MdDialogRef, MdDialog} from '@angular/material';
 import {SearchResultDialog} from "./search-result.component";
 
@@ -25,13 +25,21 @@ export class SearchBarComponent implements OnInit {
    * Open Dialog displaying NLP interpretation of the NLP query from search-bar component
    * @param response result of the NLP interpretation
    */
-  openDialog(response) {
+  openDialog(queryResponse) {
     this.dialogRef = this.dialog.open(SearchResultDialog);
 
     // Passing NLP interpretation as dialog parameter
-    this.dialogRef.componentInstance.response = response;
+    this.dialogRef.componentInstance.response = queryResponse;
 
-    this.dialogRef.afterClosed().subscribe(() => {
+    this.dialogRef.afterClosed().subscribe(dialogResult => {
+      // When 'Start request' button clicked
+      if (dialogResult) {
+        // Send request to start processing query of queryResponse.id
+        this.querySender.sendStart(queryResponse.id).subscribe(
+          response => console.log('[INFO] Query started: ',queryResponse.id),
+          error => this.errorHandler(error)
+        );
+      }
       this.dialogRef = null;
     });
   }
