@@ -112,6 +112,35 @@ class ImageFetcher:
         })
 
     @staticmethod
+    def CityToGeometry(city_name):
+        """Converts a city name to a polygon representation.
+
+        Uses the OpenStreetMap public database to convert a city to a GeoJSON
+        representation.
+
+        Parameters:
+            city_name: name of the city.
+        Returns:
+            A Geometry object representing area of the city.
+        """
+        result = requests.get(OPENSTREETMAP_URL, params=dict(
+            format="json",
+            city=city_name,
+            polygon_geojson=1,
+            limit=1,
+        ))
+
+        if not result.ok:
+            raise Error('Unable to fetch city name. OpenStreetMap status '
+                'code: %s' % result.status_code)
+
+        result_json = result.json()
+        if len(result_json) == 0:
+            raise Error('Empty result received from the OpenStreetMap.')
+
+        return result_json[0].get("geojson", [])
+
+    @staticmethod
     def CountryToGeometry(country_name):
         """Converts a country name to a polygon representation.
 

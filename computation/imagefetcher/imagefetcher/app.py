@@ -58,18 +58,21 @@ def handle_error(error):
 @get_param("date", parser=Parser.date, required=True)
 @get_param("polygon", parser=Parser.polygon, default=None)
 @get_param("country", parser=str, default=None)
+@get_param('city', parser=str, default=None)
 @get_param("scale", parser=float, default=500)
 @get_param("delta", parser=Parser.date_delta, default=relativedelta(months=3))
-def rgb_handler(date, polygon, country, scale, delta):
+def rgb_handler(date, polygon, country, city, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
     GET query parameters:
         date (yyyy-mm-dd):
             Average date of the image to fetch. Required.
         polygon (list[list[int]]):
-            Area to visualize. Required, or country must be specified.
+            Area to visualize. Required, or city/country must be specified.
         country (str):
-            Country to visualize. Required, or polygon must be specified.
+            Country to visualize. Required, or city/polygon must be specified.
+        city (str):
+            City to visualize. Required, or country/polygon must be specified.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
             better.
@@ -84,7 +87,8 @@ def rgb_handler(date, polygon, country, scale, delta):
     """
     geometry = get_geometry({
         'country': (country, fetcher.CountryToGeometry),
-        'polygon': (polygon, fetcher.VerticesToGeometry)
+        'polygon': (polygon, fetcher.VerticesToGeometry),
+        'city': (city, fetcher.CityToGeometry),
     })
 
     start_date = date - delta
@@ -96,10 +100,11 @@ def rgb_handler(date, polygon, country, scale, delta):
 @app.route('/forestDiff')
 @get_param('polygon', parser=Parser.polygon, default=None)
 @get_param('country', parser=str, default=None)
+@get_param('city', parser=str, default=None)
 @get_param('start', parser=int, default=2000)
 @get_param('stop', parser=int, default=date.today().year)
 @get_param('scale', parser=float, default=500)
-def forest_diff_handler(polygon, country, start, stop, scale):
+def forest_diff_handler(polygon, country, city, start, stop, scale):
     """Generates a RGB image of an are representing {de,re}forestation.
 
     Generates a RGB image where red green and blue channels correspond
@@ -111,9 +116,11 @@ def forest_diff_handler(polygon, country, start, stop, scale):
 
     GET Parameters:
         polygon (list[list[int]]):
-            Area to visualize. Required, or country must be specified.
+            Area to visualize. Required, or city/country must be specified.
         country (str):
-            Country to visualize. Required, or polygon must be specified.
+            Country to visualize. Required, or city/polygon must be specified.
+        city (str):
+            City to visualize. Required, or country/polygon must be specified.
         start (int):
             Reference year. Must be greater than or equal to 2000.
         stop (int):
@@ -131,7 +138,8 @@ def forest_diff_handler(polygon, country, start, stop, scale):
     """
     geometry = get_geometry({
         'country': (country, fetcher.CountryToGeometry),
-        'polygon': (polygon, fetcher.VerticesToGeometry)
+        'polygon': (polygon, fetcher.VerticesToGeometry),
+        'city': (city, fetcher.CityToGeometry),
     })
 
     current_year = date.today().year

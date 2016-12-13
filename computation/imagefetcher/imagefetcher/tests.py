@@ -7,6 +7,8 @@ import threading
 import time
 import unittest
 
+from itertools import combinations
+
 import app
 from imagefetcher.utils import Parser
 
@@ -77,25 +79,24 @@ class FlaskApplicationTest(unittest.TestCase):
 
     def test_rgb_invalid_parameters(self):
         """Test if missing arguments are correctly handled."""
-        response = self.do_request("/rgb")
-        self.assertEquals(response.status_code, 400)
-        response = self.do_request("/rgb", params={'date': '2000-01-01'})
-        self.assertEquals(response.status_code, 400)
-        response = self.do_request("/rgb", params={'polygon': VALID_POLYGON})
-        self.assertEquals(response.status_code, 400)
-        response = self.do_request("/rgb", params={'country': 'congo'})
-        self.assertEquals(response.status_code, 400)
-        response = self.do_request("/rgb", params={
+        required_args = {
             'polygon': VALID_POLYGON,
             'country': 'congo',
-        })
-        self.assertEquals(response.status_code, 400)
-        response = self.do_request("/rgb", params={
-            'date': '2000-01-01',
-            'polygon': VALID_POLYGON,
-            'country': 'congo',
-        })
-        self.assertEquals(response.status_code, 400)
+            'city': 'Pau',
+        }
+
+        for r in range(1, len(required_args)):
+            for params in combinations(required_args.items(), r):
+                params = dict(params)
+                response = self.do_request("/rgb", params=params)
+                # Date is missing, it will report 400 everytime
+                self.assertEquals(response.status_code, 400, params)
+
+                params.update({'date': '2000-01-01'})
+                response = self.do_request("/rgb", params=params)
+                # It will report 400 except if only one parameter is specified.
+                status = 400 if r != 1 else 200
+                self.assertEquals(response.status_code, status, params)
 
     def test_rgb_invalid_date(self):
         """Test if invalid date is correctly handled."""
@@ -180,13 +181,17 @@ class FlaskApplicationTest(unittest.TestCase):
 
     def test_forest_diff_invalid_parameters(self):
         """Test if missing arguments are correctly handled."""
-        response = self.do_request("/forestDiff")
-        self.assertEquals(response.status_code, 400)
-        response = self.do_request("/forestDiff", {
+        required_args = {
             'polygon': VALID_POLYGON,
             'country': 'congo',
-        })
-        self.assertEquals(response.status_code, 400)
+            'city': 'Pau',
+        }
+
+        for r in range(2, len(required_args)):
+            for params in combinations(required_args.items(), r):
+                params = dict(params)
+                response = self.do_request("/forestDiff", params=params)
+                self.assertEquals(response.status_code, 400, params)
 
     def test_forest_diff_invalid_polygon(self):
         """Test if invalid polygons are correctly handled."""
