@@ -29,6 +29,7 @@ from fetcher import ImageFetcher
 from imagefetcher.utils import Error
 from imagefetcher.utils import Parser
 from imagefetcher.utils import get_param
+from imagefetcher.utils import get_geometry
 
 
 app = Flask(__name__)
@@ -81,14 +82,10 @@ def rgb_handler(date, polygon, country, scale, delta):
             error (str):
                 In case of error, displays the error message.
     """
-    if country is None and polygon is None:
-        raise Error("No area parameter (country or polygon) sent.")
-    if country is not None:
-        if polygon is not None:
-            raise Error("Country and polygon parameters are mutually exclusive.")
-        geometry = fetcher.CountryToGeometry(country)
-    else:
-        geometry = fetcher.VerticesToGeometry(polygon)
+    geometry = get_geometry({
+        'country': (country, fetcher.CountryToGeometry),
+        'polygon': (polygon, fetcher.VerticesToGeometry)
+    })
 
     start_date = date - delta
     end_date = date + delta
@@ -132,14 +129,10 @@ def forest_diff_handler(polygon, country, start, stop, scale):
             error (str):
                 In case of error, displays the error message.
     """
-    if country is None and polygon is None:
-        raise Error("No area parameter (country or polygon) sent.")
-    if country is not None:
-        if polygon is not None:
-            raise Error("Country and polygon parameters are mutually exclusive.")
-        geometry = fetcher.CountryToGeometry(country)
-    else:
-        geometry = fetcher.VerticesToGeometry(polygon)
+    geometry = get_geometry({
+        'country': (country, fetcher.CountryToGeometry),
+        'polygon': (polygon, fetcher.VerticesToGeometry)
+    })
 
     current_year = date.today().year
     try:
