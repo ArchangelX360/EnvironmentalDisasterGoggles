@@ -1,6 +1,7 @@
 export interface InterpretedQuery {
+  id: string
   place: string;
-  type: string;
+  event: string;
   // TODO(archangel): dates needs to be typed
   from: any;
   to: any;

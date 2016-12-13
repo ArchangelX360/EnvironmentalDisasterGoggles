@@ -43,4 +43,19 @@ export class QuerySenderService {
       .catch(error => Observable.throw(error))
   }
 
+  /**
+   * Request to kill the query canceled by user
+   * @param queryID id of the query to kill
+   */
+  sendKill(queryID : string) : Observable<any> {
+    let headers = new Headers({'Content-Type': 'application/json'});
+    let options = new RequestOptions({headers: headers});
+    let url = 'http://localhost:9000/process-kill/'+queryID;
+
+    return this.http.post(url, options)
+      .map(response => response)
+      .catch(error => Observable.throw(error))
+  }
+
+
 }

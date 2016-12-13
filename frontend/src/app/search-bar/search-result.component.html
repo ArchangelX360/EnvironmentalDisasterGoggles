@@ -5,7 +5,6 @@
   <table *ngIf="response" class="bordered striped centered-th">
     <thead>
       <tr>
-        <th *ngIf="response.status">Status</th>
         <th *ngIf="response.place">Place</th>
         <th *ngIf="response.from">From</th>
         <th *ngIf="response.to">To</th>
@@ -14,7 +13,6 @@
     </thead>
     <tbody>
       <tr>
-        <td *ngIf="response.status">{{response.status}}</td>
         <td *ngIf="response.place">{{response.place}}</td>
         <td *ngIf="response.from">{{response.from}}</td>
         <td *ngIf="response.to">{{response.to}}</td>
