@@ -62,7 +62,7 @@ class NLPParser(query: String) {
   def extractDate(): List[String] = times.map(_.toString).toList
 
   def extractPlace(): List[String] = entities
-    .filter(token => token.nef == "PLACE")
+    .filter(token => token.nef == "PLACE" || token.nef == "LOCATION")
     .map(token => token.word)
     .distinct
     .toList
