@@ -94,7 +94,7 @@ def rgb_handler(date, polygon, country, city, scale, delta):
     start_date = date - delta
     end_date = date + delta
     url = fetcher.GetRGBImage(start_date, end_date, geometry, scale)
-    return jsonify(href=url)
+    return jsonify(href=url, geojson=geometry.toGeoJSON())
 
 
 @app.route('/forestDiff')
@@ -152,7 +152,7 @@ def forest_diff_handler(polygon, country, city, start, stop, scale):
         raise Error(str(e))
 
     url = fetcher.GetForestIndicesImage(start, stop, geometry, scale)
-    return jsonify(href=url)
+    return jsonify(href=url, geojson=geometry.toGeoJSON())
 
 
 @app.route("/")
