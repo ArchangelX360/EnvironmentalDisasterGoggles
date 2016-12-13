@@ -114,23 +114,30 @@ class ImageFetcher:
         })
 
     @staticmethod
-    def CityToGeometry(city_name):
-        """Converts a city name to a polygon representation.
+    def PlaceToGeometry(place_name, place_type=None):
+        """Converts a place name to a polygon representation.
 
         Uses the OpenStreetMap public database to convert a city to a GeoJSON
         representation.
 
         Parameters:
-            city_name: name of the city.
+            place_name: name of the place.
+            place_type: type of the place (city, country...).
         Returns:
-            A Geometry object representing area of the city.
+            A Geometry object representing area of the place.
         """
-        result = requests.get(OPENSTREETMAP_URL, params=dict(
-            format="json",
-            city=city_name,
-            polygon_geojson=1,
-            limit=1,
-        ))
+        params = {
+            'format': 'json',
+            'polygon_geojson': 1,
+            'limit': 1,
+        }
+
+        if place_type is None:
+            params['q'] = place_name
+        else:
+            params['place_type'] = place_name
+
+        result = requests.get(OPENSTREETMAP_URL, params=params)
 
         if not result.ok:
             raise Error('Unable to fetch city name. OpenStreetMap status '
@@ -141,6 +148,20 @@ class ImageFetcher:
             raise Error('Empty result received from the OpenStreetMap.')
 
         return ee.Geometry(result_json[0].get("geojson", []))
+
+    @staticmethod
+    def CityToGeometry(city_name):
+        """Converts a city name to a polygon representation.
+
+        Uses the OpenStreetMap public database to convert a city to a GeoJSON
+        representation.
+
+        Parameters:
+            place_name: name of the city.
+        Returns:
+            A Geometry object representing area of the city.
+        """
+        return ImageFetcher.PlaceToGeometry(city_name, place_type='city')
 
     @staticmethod
     def CountryToGeometry(country_name):
