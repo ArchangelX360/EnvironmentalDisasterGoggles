@@ -4,8 +4,13 @@
 }
 
 .search-bar {
+  text-align: center;
   margin-top: 30px;
   margin-left: 20px;
+}
+
+.search-bar md-input {
+  width: 50%;
 }
 
 .monitoring {

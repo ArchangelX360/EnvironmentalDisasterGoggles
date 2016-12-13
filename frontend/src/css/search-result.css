@@ -5,3 +5,8 @@
 .search-result-dialog > button {
   margin-top: 20px;
 }
+
+.search-result-dialog .green {
+  background-color: #1B9A59;
+  color: #fff;
+}

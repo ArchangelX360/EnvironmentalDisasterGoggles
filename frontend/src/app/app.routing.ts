@@ -1,8 +1,8 @@
 import { Routes, RouterModule } from '@angular/router';
-import { PageNotFoundComponent } from './page-not-found.component';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { ModuleWithProviders } from '@angular/core';
-import { ViewerComponent } from './viewer.component';
-import { MonitoringComponent } from './monitoring.component';
+import { ViewerComponent } from './monitoring/viewer.component';
+import { MonitoringComponent } from './monitoring/monitoring.component';
 
 
 const appRoutes: Routes = [
