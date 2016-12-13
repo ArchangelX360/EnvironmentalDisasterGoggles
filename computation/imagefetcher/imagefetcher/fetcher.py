@@ -173,6 +173,27 @@ class ImageFetcher:
         """
         return ee.Geometry.Polygon(vertices)
 
+    @staticmethod
+    def _GeometryToRectangle(geometry):
+        """Converts a polygon geometry to the minimal rectangle containing it.
+
+        Parameters:
+            geometry: Computed geometry to convert.
+        Returns:
+            The minimal Geometry.Rectangle object containing the input.
+        """
+        parts = geometry.toGeoJSON()['coordinates']
+
+        x_min, y_min = float('inf'), float('inf')
+        x_max, y_max = -x_min, -y_min
+
+        for part in parts:
+            for x, y in part:
+                x_min, y_min = min(x, x_min), min(y, y_min)
+                x_max, y_max = max(x, x_max), max(y, y_max)
+
+        return ee.Geometry.Rectangle(x_min, y_min, x_max, y_max)
+
     def _GetForestIndicesImage(self, start_year, end_year, geometry, scale):
         """Generates a RGB image representing forestation within two years
 
@@ -225,6 +246,7 @@ class ImageFetcher:
         Returns:
             An URL to the generated image.
         """
+        geometry = self._GeometryToRectangle(geometry)
         with self.rate_limiter:
             return self._GetRGBImage(start_date, end_date, geometry, scale)
 
@@ -257,6 +279,7 @@ class ImageFetcher:
         Returns:
             An URL to the generated image.
         """
+        geometry = self._GeometryToRectangle(geometry)
         with self.rate_limiter:
             return self._GetForestIndicesImage(start_year, end_year, geometry,
                 scale)
