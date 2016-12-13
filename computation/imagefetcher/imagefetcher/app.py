@@ -57,11 +57,12 @@ def handle_error(error):
 @app.route('/rgb')
 @get_param("date", parser=Parser.date, required=True)
 @get_param("polygon", parser=Parser.polygon, default=None)
+@get_param('place', parser=str, default=None)
 @get_param("country", parser=str, default=None)
 @get_param('city', parser=str, default=None)
 @get_param("scale", parser=float, default=500)
 @get_param("delta", parser=Parser.date_delta, default=relativedelta(months=3))
-def rgb_handler(date, polygon, country, city, scale, delta):
+def rgb_handler(date, polygon, place, country, city, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
     GET query parameters:
@@ -69,6 +70,10 @@ def rgb_handler(date, polygon, country, city, scale, delta):
             Average date of the image to fetch. Required.
         polygon (list[list[int]]):
             Area to visualize. Required, or city/country must be specified.
+        place (str):
+            Place to visualize. This is automatically converted to GeoJSON by
+            the OpenStreetMap API. Required, or another position must be
+            specified.
         country (str):
             Country to visualize. Required, or city/polygon must be specified.
         city (str):
@@ -88,6 +93,7 @@ def rgb_handler(date, polygon, country, city, scale, delta):
     geometry = get_geometry({
         'country': (country, fetcher.CountryToGeometry),
         'polygon': (polygon, fetcher.VerticesToGeometry),
+        'place': (place, fetcher.PlaceToGeometry),
         'city': (city, fetcher.CityToGeometry),
     })
 
@@ -99,12 +105,13 @@ def rgb_handler(date, polygon, country, city, scale, delta):
 
 @app.route('/forestDiff')
 @get_param('polygon', parser=Parser.polygon, default=None)
+@get_param('place', parser=str, default=None)
 @get_param('country', parser=str, default=None)
 @get_param('city', parser=str, default=None)
 @get_param('start', parser=int, default=2000)
 @get_param('stop', parser=int, default=date.today().year)
 @get_param('scale', parser=float, default=500)
-def forest_diff_handler(polygon, country, city, start, stop, scale):
+def forest_diff_handler(polygon, place, country, city, start, stop, scale):
     """Generates a RGB image of an are representing {de,re}forestation.
 
     Generates a RGB image where red green and blue channels correspond
@@ -116,11 +123,15 @@ def forest_diff_handler(polygon, country, city, start, stop, scale):
 
     GET Parameters:
         polygon (list[list[int]]):
-            Area to visualize. Required, or city/country must be specified.
+            Area to visualize. Required, or another position must be specified.
+        place (str):
+            Place to visualize. This is automatically converted to GeoJSON by
+            the OpenStreetMap API. Required, or another position must be
+            specified.
         country (str):
-            Country to visualize. Required, or city/polygon must be specified.
+            Country to visualize. Required, or other position must be specified.
         city (str):
-            City to visualize. Required, or country/polygon must be specified.
+            City to visualize. Required, or another position must be specified.
         start (int):
             Reference year. Must be greater than or equal to 2000.
         stop (int):
@@ -138,6 +149,7 @@ def forest_diff_handler(polygon, country, city, start, stop, scale):
     """
     geometry = get_geometry({
         'country': (country, fetcher.CountryToGeometry),
+        'place': (place, fetcher.PlaceToGeometry),
         'polygon': (polygon, fetcher.VerticesToGeometry),
         'city': (city, fetcher.CityToGeometry),
     })

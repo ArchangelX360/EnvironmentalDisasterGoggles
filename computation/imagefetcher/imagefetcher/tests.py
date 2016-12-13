@@ -83,6 +83,7 @@ class FlaskApplicationTest(unittest.TestCase):
             'polygon': VALID_POLYGON,
             'country': 'congo',
             'city': 'Pau',
+            'place': 'Pau',
         }
 
         for r in range(1, len(required_args)):
@@ -185,6 +186,7 @@ class FlaskApplicationTest(unittest.TestCase):
             'polygon': VALID_POLYGON,
             'country': 'congo',
             'city': 'Pau',
+            'place': 'Pau',
         }
 
         for r in range(2, len(required_args)):
