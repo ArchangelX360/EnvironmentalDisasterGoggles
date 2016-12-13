@@ -71,6 +71,31 @@ def get_param(param_name, parser=str, required=False, default=None):
     return decorator
 
 
+def get_geometry(get_parameters):
+    """Pick one geometry from the request parameters.
+
+    Parameters:
+        get_parameters: parameter names associated to their value and
+            converter.
+    Returns:
+        The geometry associated to the request.
+    Raises:
+        Error: if strictly less or more than 1 geometry parameter is not None.
+    """
+    non_null_parameters = [key for key, value in get_parameters.items()
+        if value[0] is not None]
+
+    if len(non_null_parameters) > 1:
+        raise Error("Only one of %s GET parameters can be specified." %
+            "/".join(non_null_parameters))
+    if len(non_null_parameters) == 0:
+        raise Error("At least one of %s GET parameters must be specified." %
+            "/".join(get_parameters.keys()))
+
+    value, parser = get_parameters[non_null_parameters[0]]
+    return parser(value)
+
+
 class Parser:
     """Set of utilities used to parse query parameters."""
 
