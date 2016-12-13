@@ -3,6 +3,7 @@
 """Image fetcher, reaching the Google Earth Engine to get images from it."""
 
 import ee
+import requests
 import time
 import threading
 
@@ -11,6 +12,7 @@ from datetime import datetime
 
 # We cannot use a flag here, because of how the application is designed.
 DEFAULT_QUERY_PER_SECONDS = 3
+OPENSTREETMAP_URL = 'http://nominatim.openstreetmap.org/search'
 
 class RateLimit:
     """Implementation of a rate limiter.
@@ -138,7 +140,7 @@ class ImageFetcher:
         if len(result_json) == 0:
             raise Error('Empty result received from the OpenStreetMap.')
 
-        return result_json[0].get("geojson", [])
+        return ee.Geometry(result_json[0].get("geojson", []))
 
     @staticmethod
     def CountryToGeometry(country_name):
