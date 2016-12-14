@@ -16,9 +16,9 @@ object SearchActor {
   def props(scheduler: ActorRef) = Props(new SearchActor(scheduler))
 
   case class SearchMessage(message: String, author: String)
-  case class SearchResponse(id: String, place: String, from: String, to: String, event:String)
+  case class SearchDetails(place: String, from: String, to: String, event:String)
 
-  implicit val responseWriters: Writes[SearchResponse] = Json.writes[SearchResponse]
+  implicit val responseWriters: Writes[SearchDetails] = Json.writes[SearchDetails]
 }
 
 class SearchActor (scheduler: ActorRef) extends Actor {
@@ -51,24 +51,29 @@ class SearchActor (scheduler: ActorRef) extends Actor {
 
     val currentSender = sender
 
-    val schedulerResponse = (scheduler ? StartProcess(message, author)).mapTo[Query]
+    val parser = new NLPParser(message)
+
+    val dates = parser.extractDate()
+
+    val place = parser.extractPlace().mkString(" ")
+
+    val details =  SearchDetails(
+      place = place,
+      from = dates.headOption.getOrElse(""),
+      to = if (dates.isEmpty) "" else dates.tail.headOption.getOrElse(""),
+      event = "not defined yet")
+
+    val schedulerResponse = (scheduler ? StartProcess(message, author, Some(details))).mapTo[Query]
 
     schedulerResponse map (query => {
       (scheduler ? StartTask(query.id, "Search task")).mapTo[Task]
+      (scheduler ? StartTask(query.id, "Fetch task")).mapTo[Task]
 
-      val parser = new NLPParser(message)
-
-      val dates = parser.extractDate()
-
-      val place = parser.extractPlace().mkString(" ")
-
-      currentSender ! SearchResponse(
-        id = query.id,
-        place = place,
-        from = dates.headOption.getOrElse(""),
-        to = if (dates.isEmpty) "" else dates.tail.headOption.getOrElse(""),
-        event = "not defined yet")
+      currentSender ! query
     })
+
+
+
   }
 }
 

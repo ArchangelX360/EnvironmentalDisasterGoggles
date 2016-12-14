@@ -5,6 +5,7 @@ import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
+import models.Query
 import modules.scheduler.SchedulerService
 import modules.searchengine.SearchActor
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -46,7 +47,7 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
       * Send the query to the search actor
       */
     (searchActor ? SearchActor.SearchMessage(message.getOrElse("empty query"), author.getOrElse("empty author")))
-          .mapTo[SearchResponse]
+          .mapTo[Query]
           .map(response => Ok(Json.toJson(response)))
 
   }
