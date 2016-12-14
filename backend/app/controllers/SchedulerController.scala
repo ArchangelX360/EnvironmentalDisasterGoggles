@@ -13,8 +13,8 @@ import play.api.mvc.{Action, Controller}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
-
 import models.Query._
+import modules.scheduler.SchedulerActor.{CancelProcessing, StartProcessing}
 
 /**
   * Handle all request from the client to the scheduler
@@ -22,9 +22,14 @@ import models.Query._
 class SchedulerController @Inject() (schedulerService: SchedulerService) extends Controller {
 
   /**
+    * Reference to the monitoring actor
+    */
+  private val monitoringActor = schedulerService.monitoringActor
+
+  /**
     * Reference to the scheduler actor
     */
-  val monitoringActor = schedulerService.monitoringActor
+  private val schedulerActor = schedulerService.schedulerActor
 
   /**
     * After this delay the server send a timeout, however the process is still running
@@ -37,8 +42,17 @@ class SchedulerController @Inject() (schedulerService: SchedulerService) extends
     */
   def getProcess = Action.async {
     (monitoringActor ? ListProcess())
-      .mapTo[mutable.MutableList[Query]]
+      .mapTo[Queries]
       .map(process => Ok(Json.toJson(process)))
   }
 
+  def startProcessing(id: String) = Action {
+    schedulerActor ! StartProcessing(id)
+    Ok("started")
+  }
+
+  def cancelProcessing(id: String) = Action {
+    schedulerActor ! CancelProcessing(id)
+    Ok("stopped")
+  }
 }

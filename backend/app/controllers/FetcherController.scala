@@ -8,6 +8,7 @@ import play.api.mvc.{Action, Controller, Result}
 import akka.pattern.ask
 import akka.util.Timeout
 import modules.imagefetcher.FetcherActor.{FetchRGB, FetchResponse}
+import modules.scheduler.SchedulerService
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.duration._
@@ -17,9 +18,13 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 /**
   * This controller exist for debug purposes, this give a direct access to the image fetcher service
   */
-class FetcherController @Inject() (system: ActorSystem, ws: WSClient, configuration: play.api.Configuration) extends Controller {
+class FetcherController @Inject() ( system: ActorSystem,
+                                    ws: WSClient,
+                                    configuration: play.api.Configuration,
+                                    scheduler: SchedulerService) extends Controller {
 
-  val fetcherActor = system.actorOf(FetcherActor.props(ws, configuration.underlying.getString("pfs.servers.imageFetcherUrl")))
+  private val fetcherActor = system.actorOf(
+    FetcherActor.props(ws, configuration.underlying.getString("pfs.servers.imageFetcherUrl"), scheduler.monitoringActor))
 
   /**
     * After this delay the server send a timeout, however the process is still running

@@ -19,8 +19,6 @@ import scala.concurrent.duration._
   */
 class SearchController @Inject() (system: ActorSystem, schedulerService: SchedulerService) extends Controller {
 
-  import SearchActor._
-
   /**
     * Handle all the search requests (including NLP processing)
     */

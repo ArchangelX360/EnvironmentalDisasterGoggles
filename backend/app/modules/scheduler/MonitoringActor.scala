@@ -1,6 +1,7 @@
 package modules.scheduler
 
 import akka.actor.{Actor, Props}
+import models.Query.Queries
 import models.{Query, Task}
 import modules.searchengine.SearchActor.SearchDetails
 
@@ -11,7 +12,7 @@ object MonitoringActor {
   /**
     * Create a new instance of monitoring actor
     */
-  def props = Props[MonitoringActor]
+  def props(processList: Queries) = Props(new MonitoringActor(processList))
 
   /**
     * Message definition
@@ -24,17 +25,12 @@ object MonitoringActor {
   case class UpdateTask(processId: String, taskId: String, status: Option[String] = None, progress: Option[Int] = None)
 }
 
-class MonitoringActor extends Actor {
+class MonitoringActor(processList: Queries) extends Actor {
 
   /**
     * Implicit import from companion object
     */
   import MonitoringActor._
-
-  /**
-    * List of all the process run by the server (including finished ones)
-    */
-  val processList = mutable.MutableList.empty[Query]
 
   /**
     * Message handling
@@ -82,7 +78,8 @@ class MonitoringActor extends Actor {
       id = String.valueOf(Math.random()),
       name = newTask.name,
       status = "Started",
-      progress = 0
+      progress = 0,
+      metadata = Map.empty
     )
 
     if (process.isDefined) {
