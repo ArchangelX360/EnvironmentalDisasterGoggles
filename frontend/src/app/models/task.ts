@@ -1,6 +1,7 @@
 export interface Task {
   id: string;
-  type: string;
+  name: string;
+  status: string;
   progress: number;
   metadata: any;
 }

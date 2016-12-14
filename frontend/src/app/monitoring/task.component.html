@@ -1,11 +1,11 @@
-<md-list-item>
+<md-list-item class="query-task">
   <!-- TODO(archangel): split into component based on task for better metadata display -->
   <span md-list-avatar [ngSwitch]="task.progress">
     <!-- TODO(archangel): better icon display needed -->
     <md-icon md-list-avatar *ngSwitchCase="100">done</md-icon>
     <md-icon md-list-avatar *ngSwitchDefault>cached</md-icon>
   </span>
-  <h4 md-line>{{task.type}}</h4>
+  <h4 md-line>{{task.name}}</h4>
   <pre md-line>
 {{task.metadata | json}}
   </pre>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Http, Response, Headers, RequestOptions } from '@angular/http';
-import { InterpretedQuery } from '../models/interpreted-query';
+import { Query } from '../models/query';
 import { MonitoringService } from './monitoring.service';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class QuerySenderService {
    * @param query the natural language string to interpret
    * @returns {Observable<R>} NLP interpretation of query
    */
-  send(query: string): Observable<InterpretedQuery> {
+  send(query: string): Observable<Query> {
     let headers = new Headers({'Content-Type': 'application/json'});
     let options = new RequestOptions({headers: headers});
     let url = 'http://localhost:9000/search';
@@ -25,7 +25,7 @@ export class QuerySenderService {
     };
 
     return this.http.post(url, body, options)
-      .map(reponse => <InterpretedQuery> reponse.json())
+      .map(response => <Query> response.json())
       .catch(error => Observable.throw(error));
   }
 
@@ -36,7 +36,7 @@ export class QuerySenderService {
   sendStart(queryID : string) : Observable<any> {
     let headers = new Headers({'Content-Type': 'application/json'});
     let options = new RequestOptions({headers: headers});
-    let url = 'http://localhost:9000/process-start/'+queryID;
+    let url = 'http://localhost:9000/process/start/'+queryID;
 
     return this.http.post(url, options)
       .map(response => response)
@@ -50,7 +50,7 @@ export class QuerySenderService {
   sendKill(queryID : string) : Observable<any> {
     let headers = new Headers({'Content-Type': 'application/json'});
     let options = new RequestOptions({headers: headers});
-    let url = 'http://localhost:9000/process-kill/'+queryID;
+    let url = 'http://localhost:9000/process/kill/'+queryID;
 
     return this.http.post(url, options)
       .map(response => response)
