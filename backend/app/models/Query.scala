@@ -1,5 +1,6 @@
 package models
 
+import modules.searchengine.SearchActor.SearchDetails
 import play.api.libs.json._
 
 import scala.collection.mutable.ListBuffer
@@ -16,7 +17,7 @@ case class Task(id: String, name: String, status: String, progress: Int)
   * @param status Task progression
   * @param tasks List all tasks associated with this query
   */
-case class Query(id: String, author: String, name: String, status: String, tasks: ListBuffer[Task])
+case class Query(id: String, details: Option[SearchDetails], author: String, name: String, status: String, tasks: ListBuffer[Task])
 
 /**
   * Companion object for Query class, contains implicit converters for tasks and query
