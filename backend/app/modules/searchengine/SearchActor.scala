@@ -67,7 +67,7 @@ class SearchActor (scheduler: ActorRef) extends Actor {
 
     schedulerResponse map (query => {
       (scheduler ? StartTask(query.id, "Search task")).mapTo[Task]
-      (scheduler ? StartTask(query.id, "Fetch task")).mapTo[Task]
+
 
       currentSender ! query
     })

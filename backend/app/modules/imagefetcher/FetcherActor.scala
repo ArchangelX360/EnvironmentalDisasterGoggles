@@ -1,10 +1,9 @@
 package modules.imagefetcher
 
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 
@@ -14,16 +13,16 @@ object FetcherActor {
     * @param ws WebService to send http request to the flask server
     * @param serverUrl Url of the flask server
     */
-  def props(ws: WSClient, serverUrl: String) = Props(new FetcherActor(ws, serverUrl))
+  def props(ws: WSClient, serverUrl: String, scheduler: ActorRef) = Props(new FetcherActor(ws, serverUrl, scheduler))
 
   /**
     * Messages definitions
     */
-  case class FetchRGB(start: String, delta: String, scale: Option[Double], polygon: JsValue)
+  case class FetchRGB(date: String, place: String, scale: Option[Double])
   case class FetchResponse(url: String)
 }
 
-class FetcherActor(ws: WSClient, serverUrl: String) extends Actor {
+class FetcherActor(ws: WSClient, serverUrl: String, scheduler: ActorRef) extends Actor {
 
   /**
     * Import implicit definition
@@ -40,15 +39,12 @@ class FetcherActor(ws: WSClient, serverUrl: String) extends Actor {
 
   /**
     * Request the flask server to process image from Earth Engine and return the url to download the image
-    *
-    * @return
     */
   def fetchImage(message: FetchRGB) = {
 
     val initialParams = Seq(
-      ("date", message.start),
-      ("delta", message.delta),
-      ("polygon", message.polygon.toString))
+      ("date", message.date),
+      ("place", message.place))
 
     val params =
       if (message.scale.isDefined) initialParams :+ ("scale", message.scale.get.toString)
