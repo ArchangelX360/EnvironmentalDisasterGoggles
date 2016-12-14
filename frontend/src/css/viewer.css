@@ -24,3 +24,40 @@
 .monitoring .md-tab-active:not(.md-tab-body) {
   background-color: rgba(197, 202, 233, 0.3);
 }
+
+.query h3 {
+  margin-top: 15px!important;
+  margin-left: 20px!important;
+}
+
+.query .status-visual-indicator {
+  width: 11px;
+  height: 11px;
+  margin-left: 5px;
+  margin-right: 8px;
+  display: inline-block;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  border-radius: 100%;
+  background: #1B9A59;
+}
+
+.query-tasks {
+  margin-top: -5px;
+  margin-bottom:20px;
+}
+
+.query-task .md-list-item {
+  height:55px!important;
+}
+
+.query-task md-icon {
+  font-size: 20px;
+  margin-left: 25px;
+  margin-top: 10px;
+}
+
+.query-task h4 {
+  font-size: 15px;
+  color: #444444;
+}

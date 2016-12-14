@@ -5,18 +5,18 @@
   <table *ngIf="response" class="bordered striped centered-th">
     <thead>
       <tr>
-        <th *ngIf="response.place">Place</th>
-        <th *ngIf="response.from">From</th>
-        <th *ngIf="response.to">To</th>
-        <th *ngIf="response.type">Type</th>
+        <th *ngIf="response.details.place">Place</th>
+        <th *ngIf="response.details.from">From</th>
+        <th *ngIf="response.details.to">To</th>
+        <th *ngIf="response.details.event">Event</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td *ngIf="response.place">{{response.place}}</td>
-        <td *ngIf="response.from">{{response.from}}</td>
-        <td *ngIf="response.to">{{response.to}}</td>
-        <td *ngIf="response.type">{{response.type}}</td>
+        <td *ngIf="response.details.place">{{response.details.place}}</td>
+        <td *ngIf="response.details.from">{{response.details.from}}</td>
+        <td *ngIf="response.details.to">{{response.details.to}}</td>
+        <td *ngIf="response.details.event">{{response.details.event}}</td>
       </tr>
     </tbody>
   </table>
