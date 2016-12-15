@@ -195,7 +195,7 @@ class ImageFetcher:
         return ee.Geometry.Polygon(vertices)
 
     @staticmethod
-    def _GeometryToRectangle(geometry):
+    def GeometryToRectangle(geometry):
         """Converts a polygon geometry to the minimal rectangle containing it.
 
         Parameters:
@@ -301,7 +301,7 @@ class ImageFetcher:
         Returns:
             An URL to the generated image.
         """
-        geometry = self._GeometryToRectangle(geometry)
+        geometry = self.GeometryToRectangle(geometry)
         with self.rate_limiter:
             return self._GetRGBImage(start_date, end_date, geometry, scale)
 
@@ -334,7 +334,7 @@ class ImageFetcher:
         Returns:
             An URL to the generated image.
         """
-        geometry = self._GeometryToRectangle(geometry)
+        geometry = self.GeometryToRectangle(geometry)
         with self.rate_limiter:
             return self._GetForestIndicesImage(start_year, end_year, geometry,
                 scale)

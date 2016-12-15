@@ -30,6 +30,7 @@ from imagefetcher.utils import Error
 from imagefetcher.utils import Parser
 from imagefetcher.utils import get_param
 from imagefetcher.utils import get_geometry
+from imagefetcher.utils import scale_from_geometry
 
 
 app = Flask(__name__)
@@ -60,7 +61,7 @@ def handle_error(error):
 @get_param('place', parser=str, default=None)
 @get_param("country", parser=str, default=None)
 @get_param('city', parser=str, default=None)
-@get_param("scale", parser=float, default=500)
+@get_param("scale", parser=float, default=None)
 @get_param("delta", parser=Parser.date_delta, default=relativedelta(months=3))
 def rgb_handler(date, polygon, place, country, city, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
@@ -80,7 +81,7 @@ def rgb_handler(date, polygon, place, country, city, scale, delta):
             City to visualize. Required, or country/polygon must be specified.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
-            better.
+            better. Attempts to automatically generates it if not specified.
         delta (yyyy-mm-dd):
             Delta within images are considered valid.
     Returns:
@@ -97,6 +98,9 @@ def rgb_handler(date, polygon, place, country, city, scale, delta):
         'city': (city, fetcher.CityToGeometry),
     })
 
+    if scale is None:
+        scale = scale_from_geometry(fetcher.GeometryToRectangle(geometry))
+
     start_date = date - delta
     end_date = date + delta
     url = fetcher.GetRGBImage(start_date, end_date, geometry, scale)
@@ -110,7 +114,7 @@ def rgb_handler(date, polygon, place, country, city, scale, delta):
 @get_param('city', parser=str, default=None)
 @get_param('start', parser=int, default=2000)
 @get_param('stop', parser=int, default=date.today().year)
-@get_param('scale', parser=float, default=500)
+@get_param('scale', parser=float, default=None)
 def forest_diff_handler(polygon, place, country, city, start, stop, scale):
     """Generates a RGB image of an are representing {de,re}forestation.
 
@@ -139,7 +143,7 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
             Must be greater than start year, and lower than current year.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
-            better.
+            better. Attempts to automatically generates it if not specified.
     Returns:
         A JSON containing metadata about the image:
             href (link):
@@ -153,6 +157,9 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
         'polygon': (polygon, fetcher.VerticesToGeometry),
         'city': (city, fetcher.CityToGeometry),
     })
+
+    if scale is None:
+        scale = scale_from_geometry(fetcher.GeometryToRectangle(geometry))
 
     current_year = date.today().year
     try:
