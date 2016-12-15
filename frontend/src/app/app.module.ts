@@ -13,7 +13,7 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { ViewerComponent } from './monitoring/viewer.component';
 import { MonitoringComponent } from './monitoring/monitoring.component';
 import { MonitoringService } from './services/monitoring.service';
-import { AuthorQueriesPipe } from './services/author-queries.pipe';
+import { AuthorQueriesPipe } from './pipes/author-queries.pipe';
 import { QueryComponent } from './monitoring/query.component';
 import { TaskComponent } from './monitoring/task.component';
 import {SearchResultDialog} from "./search-bar/search-result.component";

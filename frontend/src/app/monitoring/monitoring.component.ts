@@ -45,10 +45,6 @@ export class MonitoringComponent implements OnInit {
       response => this.queries = response,
       error => this.errorHandler(error)
     );
-    this.monitoringService.getAuthor().subscribe(
-      response => this.userToken = response,
-      error => this.errorHandler(error)
-    );
   }
 
   errorHandler(error: any) {

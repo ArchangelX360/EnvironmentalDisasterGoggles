@@ -6,8 +6,8 @@ import { Query } from '../models/query';
 })
 export class AuthorQueriesPipe implements PipeTransform {
 
-  transform(queries: Query[], author: string): Query[] {
-    return queries.filter(query => query.author === author);
+  transform(queries: Query[]): Query[] {
+    return queries.filter(query => query.author === localStorage.getItem('authorID'));
   }
 
 }

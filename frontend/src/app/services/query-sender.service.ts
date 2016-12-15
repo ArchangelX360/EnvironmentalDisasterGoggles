@@ -16,14 +16,14 @@ export class QuerySenderService {
    * @returns {Observable<R>} NLP interpretation of query
    */
   send(query: string): Observable<Query> {
+    let author = this.getCookieAuthorID();
     let headers = new Headers({'Content-Type': 'application/json'});
     let options = new RequestOptions({headers: headers});
     let url = 'http://localhost:9000/search';
     let body = {
       "query": query,
-      "author": this.monitoringService.getAuthor()
+      "author": author
     };
-
     return this.http.post(url, body, options)
       .map(response => <Query> response.json())
       .catch(error => Observable.throw(error));
@@ -57,5 +57,16 @@ export class QuerySenderService {
       .catch(error => Observable.throw(error))
   }
 
+  /**
+   * Retrieve authorID in localStorage or create it if not existing
+   */
+  getCookieAuthorID() : string {
+    let authorID = localStorage.getItem('authorID');
+    if (!authorID) {
+      authorID = Math.floor(Math.random()*100000).toString();
+      localStorage.setItem('authorID',authorID);
+    }
+    return(authorID);
+  }
 
 }
