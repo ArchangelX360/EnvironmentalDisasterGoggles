@@ -96,6 +96,23 @@ def get_geometry(get_parameters):
     return parser(value)
 
 
+def scale_from_geometry(rectangle):
+    """Attempts to compute a best scale based on the Image geometry.
+
+    Parameters:
+        rectangle: Rectangle generated from the client query.
+    Returns:
+        A 'best scale' based on the rectangle values.
+    """
+    # Get the rectangle bounds
+    x_0, y_0 = rectangle.toGeoJSON()['coordinates'][0][0]
+    x_1, y_1 = rectangle.toGeoJSON()['coordinates'][0][2]
+
+    scale = int((abs(x_0 - x_1) + abs(y_0 - y_1)) * 80)
+    print(scale)
+    return scale
+
+
 class Parser:
     """Set of utilities used to parse query parameters."""
 
