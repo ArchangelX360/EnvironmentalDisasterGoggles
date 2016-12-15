@@ -42,6 +42,11 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     case CancelProcessing(id) => cancelProcessing(id)
   }
 
+  /**
+    * Entry point of the pipeline
+    * * Send query to the search engine
+    * * Download image
+    */
   def startProcessing(id: String): Unit = {
       monitoring.ask(GetProcess(id))
         .mapTo[Query]
@@ -52,11 +57,14 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
             monitoring ! UpdateProcess(id, "failed: no details")
             throw new Exception("no details")
         }
-        .flatMap(details => fetcherActor.ask(FetchRGB("2015-01-01", details.place, Some(2.9), id)))
+        .flatMap(details => fetcherActor.ask(FetchRGB("2015-01-01", details.place, Some(10), id)))
         .mapTo[FetchResponse]
-        .map(response => println("Url from falsk server : " + response.url))
+        .foreach(response => println("Url from falsk server : " + response.url))
   }
 
+  /**
+    * Remove a query from the query list (if processing hasn't started yet)
+    */
   def cancelProcessing(id: String): Unit = {
     val index = processes.indexWhere(query => query.id == id)
     processes.remove(index)

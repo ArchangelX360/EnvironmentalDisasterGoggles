@@ -46,11 +46,17 @@ class SchedulerController @Inject() (schedulerService: SchedulerService) extends
       .map(process => Ok(Json.toJson(process)))
   }
 
+  /**
+    * Start fetching images and apply processing from a processed query
+    */
   def startProcessing(id: String) = Action {
     schedulerActor ! StartProcessing(id)
     Ok("started")
   }
 
+  /**
+    * Remove the query from the query list
+    */
   def cancelProcessing(id: String) = Action {
     schedulerActor ! CancelProcessing(id)
     Ok("stopped")
