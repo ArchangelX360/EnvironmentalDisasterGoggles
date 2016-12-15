@@ -203,17 +203,51 @@ class ImageFetcher:
         Returns:
             The minimal Geometry.Rectangle object containing the input.
         """
-        parts = geometry.toGeoJSON()['coordinates']
 
-        x_min, y_min = float('inf'), float('inf')
-        x_max, y_max = -x_min, -y_min
+        def get_rectangle_bounds(parts):
+            """Returns the minimal rectangle containing all parts of the
+            polygon.
+            """
+            x_min, y_min = float('inf'), float('inf')
+            x_max, y_max = -x_min, -y_min
 
-        for part in parts:
-            for x, y in part:
-                x_min, y_min = min(x, x_min), min(y, y_min)
-                x_max, y_max = max(x, x_max), max(y, y_max)
+            for part in parts:
+                for x, y in part:
+                    x_min, y_min = min(x, x_min), min(y, y_min)
+                    x_max, y_max = max(x, x_max), max(y, y_max)
 
-        return ee.Geometry.Rectangle(x_min, y_min, x_max, y_max)
+            return x_min, y_min, x_max, y_max
+
+        geo_json = geometry.toGeoJSON()
+
+        # For Polygon, simply return the minimal rectangle containing the
+        # polygon.
+        if geo_json['type'] == 'Polygon':
+            return ee.Geometry.Rectangle(*get_rectangle_bounds(
+                geo_json['coordinates']))
+
+        if geo_json['type'] != 'MultiPolygon':
+            raise Error('Unsupported polygon type: %s' % geo_json['type'])
+
+        # At this point, all geo JSON are of type MultiPolygon. Since some
+        # requests may contain multiple points on the earth (such as France's
+        # DOM-TOM), we cannot generate a rectangle containing all this point
+        # (the Earth Engine API will not appreciate).
+        # We simply get the largest rectangle generated from the polygons. This
+        # may not be accurate, but at least it works!
+        def distance(x_min, y_min, x_max, y_max):
+            """Hamilton distance within two 2D points."""
+            return x_max - x_min + y_max - y_min
+
+        max_distance, max_bounds = 0, None
+        for parts in geo_json['coordinates']:
+            bounds = get_rectangle_bounds(parts)
+            bounds_distance = distance(*bounds)
+            if bounds_distance > max_distance:
+                max_distance, max_bounds = bounds_distance, bounds
+
+        print(max_bounds)
+        return ee.Geometry.Rectangle(*max_bounds)
 
     def _GetForestIndicesImage(self, start_year, end_year, geometry, scale):
         """Generates a RGB image representing forestation within two years
