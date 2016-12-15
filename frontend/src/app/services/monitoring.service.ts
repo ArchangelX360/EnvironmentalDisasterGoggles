@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Query } from '../models/query';
-import { AUTHOR } from '../mocks/mock-author';
 import { Http } from '@angular/http';
 
 @Injectable()
@@ -18,10 +17,6 @@ export class MonitoringService {
       .catch((error) => {
         return Observable.throw(error)
       });
-  }
-
-  getAuthor(): Observable<string> {
-    return Observable.from([AUTHOR]);
   }
 
 }
