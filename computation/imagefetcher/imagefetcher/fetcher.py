@@ -246,7 +246,6 @@ class ImageFetcher:
             if bounds_distance > max_distance:
                 max_distance, max_bounds = bounds_distance, bounds
 
-        print(max_bounds)
         return ee.Geometry.Rectangle(*max_bounds)
 
     def _GetForestIndicesImage(self, start_year, end_year, geometry, scale):

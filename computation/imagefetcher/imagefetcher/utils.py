@@ -108,9 +108,7 @@ def scale_from_geometry(rectangle):
     x_0, y_0 = rectangle.toGeoJSON()['coordinates'][0][0]
     x_1, y_1 = rectangle.toGeoJSON()['coordinates'][0][2]
 
-    scale = int((abs(x_0 - x_1) + abs(y_0 - y_1)) * 80)
-    print(scale)
-    return scale
+    return int((abs(x_0 - x_1) + abs(y_0 - y_1)) * 80)
 
 
 class Parser:
