@@ -300,7 +300,6 @@ class ImageFetcher:
         Returns:
             An URL to the generated image.
         """
-        geometry = self.GeometryToRectangle(geometry)
         with self.rate_limiter:
             return self._GetRGBImage(start_date, end_date, geometry, scale)
 
@@ -333,7 +332,6 @@ class ImageFetcher:
         Returns:
             An URL to the generated image.
         """
-        geometry = self.GeometryToRectangle(geometry)
         with self.rate_limiter:
             return self._GetForestIndicesImage(start_year, end_year, geometry,
                 scale)
