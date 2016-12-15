@@ -98,13 +98,15 @@ def rgb_handler(date, polygon, place, country, city, scale, delta):
         'city': (city, fetcher.CityToGeometry),
     })
 
+    rectangle = fetcher.GeometryToRectangle(geometry)
     if scale is None:
-        scale = scale_from_geometry(fetcher.GeometryToRectangle(geometry))
+        scale = scale_from_geometry(rectangle)
 
     start_date = date - delta
     end_date = date + delta
-    url = fetcher.GetRGBImage(start_date, end_date, geometry, scale)
-    return jsonify(href=url, geojson=geometry.toGeoJSON())
+    url = fetcher.GetRGBImage(start_date, end_date, rectangle, scale)
+    return jsonify(href=url, geojson=geometry.toGeoJSON(),
+        image_geojson=rectangle.toGeoJSON())
 
 
 @app.route('/forestDiff')
@@ -158,8 +160,9 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
         'city': (city, fetcher.CityToGeometry),
     })
 
+    rectangle = fetcher.GeometryToRectangle(geometry)
     if scale is None:
-        scale = scale_from_geometry(fetcher.GeometryToRectangle(geometry))
+        scale = scale_from_geometry(rectangle)
 
     current_year = date.today().year
     try:
@@ -170,8 +173,9 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
     except AssertionError as e:
         raise Error(str(e))
 
-    url = fetcher.GetForestIndicesImage(start, stop, geometry, scale)
-    return jsonify(href=url, geojson=geometry.toGeoJSON())
+    url = fetcher.GetForestIndicesImage(start, stop, rectangle, scale)
+    return jsonify(href=url, geojson=geometry.toGeoJSON(),
+        image_geojson=rectangle.toGeoJSON())
 
 
 @app.route("/")
