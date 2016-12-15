@@ -4,8 +4,6 @@ POST    /search                 controllers.SearchController.search
 
 GET     /monitoring/queries     controllers.SchedulerController.getProcess
 
-POST    /dev/fetch              controllers.FetcherController.fetchRGB
+POST     /process/start/:id      controllers.SchedulerController.startProcessing(id: String)
 
-GET     /process/start/:id      controllers.SchedulerController.startProcessing(id: String)
-
-GET     /process/kill/:id       controllers.SchedulerController.cancelProcessing(id: String)
+POST     /process/kill/:id       controllers.SchedulerController.cancelProcessing(id: String)
