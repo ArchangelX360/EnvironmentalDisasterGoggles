@@ -6,14 +6,14 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import models.{Query, Task}
-import modules.scheduler.MonitoringActor.{StartProcess, StartTask}
+import modules.scheduler.MonitoringActor.{StartProcess, StartTask, UpdateTask}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{Json, Writes}
 
 import scala.concurrent.duration._
 
 object SearchActor {
-  def props(scheduler: ActorRef) = Props(new SearchActor(scheduler))
+  def props(monitoring: ActorRef) = Props(new SearchActor(monitoring))
 
   case class SearchMessage(message: String, author: String)
   case class SearchDetails(place: String, from: String, to: String, event:String)
@@ -21,7 +21,7 @@ object SearchActor {
   implicit val responseWriters: Writes[SearchDetails] = Json.writes[SearchDetails]
 }
 
-class SearchActor (scheduler: ActorRef) extends Actor {
+class SearchActor (monitoring: ActorRef) extends Actor {
 
   /**
     * Import implicit definition from companion object
@@ -63,11 +63,12 @@ class SearchActor (scheduler: ActorRef) extends Actor {
       to = if (dates.isEmpty) "" else dates.tail.headOption.getOrElse(""),
       event = "not defined yet")
 
-    val schedulerResponse = (scheduler ? StartProcess(message, author, Some(details))).mapTo[Query]
+    val schedulerResponse = (monitoring ? StartProcess(message, author, Some(details))).mapTo[Query]
 
     schedulerResponse map (query => {
-      (scheduler ? StartTask(query.id, "Search task")).mapTo[Task]
-
+      monitoring.ask(StartTask(query.id, "Search task"))
+        .mapTo[Task]
+        .foreach(task => monitoring ! UpdateTask(query.id, task.id, Some("completed"), Some(100)))
 
       currentSender ! query
     })

@@ -24,7 +24,7 @@ class SchedulerService @Inject() (system: ActorSystem, ws: WSClient, configurati
   /**
     * The scheduler actor manage the lifecycle of tasks within a query
     */
-  val schedulerActor: ActorRef = system.actorOf(SchedulerActor.props(processes, configuration, ws))
+  val schedulerActor: ActorRef = system.actorOf(SchedulerActor.props(processes, configuration, ws, monitoringActor))
 
 
 }

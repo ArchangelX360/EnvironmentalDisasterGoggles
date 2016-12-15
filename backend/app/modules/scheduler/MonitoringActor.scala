@@ -6,6 +6,7 @@ import models.{Query, Task}
 import modules.searchengine.SearchActor.SearchDetails
 
 import scala.collection.mutable
+import scala.util.Random
 
 object MonitoringActor {
 
@@ -20,6 +21,7 @@ object MonitoringActor {
   case class StartProcess(query: String, author: String,  details: Option[SearchDetails])
   case class UpdateProcess(id: String, status: String)
   case class ListProcess(status: Option[String] = None)
+  case class GetProcess(id: String)
 
   case class StartTask(processId: String, name: String)
   case class UpdateTask(processId: String, taskId: String, status: Option[String] = None, progress: Option[Int] = None)
@@ -38,7 +40,9 @@ class MonitoringActor(processList: Queries) extends Actor {
   override def receive: Receive = {
     case StartProcess(query, author, details) => sender ! startProcess(query, author, details)
     case ListProcess(status) => sender ! listProcess(status)
+    case GetProcess(id) => getProcess(id)
     case task: StartTask => startTask(task)
+    case task: UpdateTask => updateTask(task)
     case _ => ()
   }
 
@@ -47,7 +51,7 @@ class MonitoringActor(processList: Queries) extends Actor {
     */
   def startProcess(query: String, author: String, details: Option[SearchDetails]): Query = {
     val process = Query(
-      id = String.valueOf(Math.random()),
+      id = String.valueOf(Random.nextInt()),
       details = details,
       name = query,
       author = author,
@@ -87,6 +91,23 @@ class MonitoringActor(processList: Queries) extends Actor {
     }
 
     sender ! task
+  }
+
+  def getProcess(id: String): Unit =
+    processList.find(query => query.id == id).foreach(query => sender ! query)
+
+  def updateTask(taskInfo: UpdateTask): Unit = {
+    val process = processList
+      .find(q => q.id == taskInfo.processId)
+
+    val taskIndex = process.map(q => q.tasks.indexWhere(t => t.id == taskInfo.taskId))
+
+    if (process.isDefined && taskIndex.isDefined) {
+      val task = process.get.tasks(taskIndex.get)
+      val newTask = Task(task.id, task.name, taskInfo.status.getOrElse(task.status), taskInfo.progress.getOrElse(task.progress), task.metadata)
+      process.get.tasks.update(taskIndex.get, newTask)
+    }
+
   }
 
 }
