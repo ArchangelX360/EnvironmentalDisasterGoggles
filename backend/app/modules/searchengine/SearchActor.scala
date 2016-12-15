@@ -73,8 +73,6 @@ class SearchActor (monitoring: ActorRef) extends Actor {
       currentSender ! query
     })
 
-
-
   }
 }
 

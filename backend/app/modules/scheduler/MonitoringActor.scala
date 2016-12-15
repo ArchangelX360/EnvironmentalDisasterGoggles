@@ -93,9 +93,16 @@ class MonitoringActor(processList: Queries) extends Actor {
     sender ! task
   }
 
+  /**
+    * Return information about a query from its id
+    */
   def getProcess(id: String): Unit =
     processList.find(query => query.id == id).foreach(query => sender ! query)
 
+  /**
+    * Update task information using optional arguments of the message
+    * (Metadata are ignored)
+    */
   def updateTask(taskInfo: UpdateTask): Unit = {
     val process = processList
       .find(q => q.id == taskInfo.processId)
