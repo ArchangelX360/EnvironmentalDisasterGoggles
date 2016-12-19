@@ -6,23 +6,23 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import modules.sparql.SparQLActor
-import modules.sparql.SparQLActor.{FetchAllGeoJSON, FetchEventClasses, InsertEvent, SparQLFetchResponse}
-import play.api.libs.json.{JsNumber, JsString, JsValue}
+import modules.sparql.SparQLActor._
+import play.api.libs.json.{JsValue}
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-// FIXME(archangel): this is not supposed to be a real controller
-
 /**
-  * This controller exist for debug purposes, this give a direct access to the image fetcher service
+  * This controller exist for debug purposes,
+  * this give a direct access to the fuseki server
   */
 class SparQLController @Inject()(system: ActorSystem,
                                  ws: WSClient,
                                  configuration: play.api.Configuration)
   extends Controller {
+
   /**
     * After this delay the server send a timeout, however the process is still running
     */
@@ -60,7 +60,7 @@ class SparQLController @Inject()(system: ActorSystem,
     )
 
     response.map {
-      case SparQLFetchResponse(stringArray) => Ok(stringArray.mkString(","))
+      case SparQLInsertResponse(message) => Ok(message)
       case error => InternalServerError(error.toString)
     }
   }
