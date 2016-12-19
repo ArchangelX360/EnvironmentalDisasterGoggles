@@ -5,21 +5,22 @@ import java.security.InvalidParameterException
 import akka.actor.{Actor, Props}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.{WSClient, WSResponse}
-
 import scala.concurrent.Future
 import scala.util.Random
+
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object SparQLActor {
 
   /**
-    * @param ws        WebService to send http request to the fuseki server
-    * @param serverUrl Url of the fuseki server
+    * @param ws           WebService to send http request to the fuseki server
+    * @param serverUrl    Url of the fuseki server
+    * @param databaseName fuseki database name
     */
   def props(ws: WSClient, serverUrl: String, databaseName: String) =
     Props(new SparQLActor(ws, serverUrl, databaseName))
 
-  /**
+  /*
     * Messages definitions
     */
 
@@ -40,19 +41,27 @@ object SparQLActor {
   case class FetchEventClasses()
 
   case class SparQLFetchResponse(response: Array[String])
+
+  case class SparQLInsertResponse(message: String)
+
 }
 
 class SparQLActor(ws: WSClient, serverUrl: String,
                   databaseName: String) extends Actor {
 
-  /**
+  /*
     * Import implicit definition
     */
 
   import SparQLActor._
 
+  val envePrefix = "PREFIX enve: <http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#> \n"
+  val rdfsPrefix = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n"
+  val rdfPrefix = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+  val xsdPrefix = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
+
   /**
-    * Message handling
+    * Message handler
     */
   override def receive: Receive = {
     case _: FetchEventClasses => fetchEventClasses()
@@ -61,11 +70,12 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     case _ => throw new InvalidParameterException()
   }
 
+  /**
+    * Fetches all geoJSON strings in the fuseki server's ontology
+    */
   def fetchAllGeoJSON(): Unit = {
-    val geoJsonRequest =
-      "PREFIX enve: <http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#> \n" +
-        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n" +
-        "SELECT ?object WHERE {?subject enve:geoJson ?object}"
+    val geoJsonRequest = envePrefix + rdfsPrefix +
+      "SELECT ?object WHERE {?subject enve:geoJson ?object}"
 
     def parseGeoJson(response: WSResponse): Array[String] = {
       val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
@@ -75,11 +85,13 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     sendResponse(executeQuery(geoJsonRequest), parseGeoJson)
   }
 
+  /**
+    * Fetches all event classes of the fuseki server's ontology
+    * Example: Deforestation, Urbanization
+    */
   def fetchEventClasses(): Unit = {
-    val eventClassesRequest =
-      "PREFIX enve: <http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#> \n" +
-        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n " +
-        "SELECT ?subject ?predicate ?object WHERE {?subject rdfs:subClassOf enve:Event}"
+    val eventClassesRequest = envePrefix + rdfsPrefix +
+      "SELECT ?subject ?predicate ?object WHERE {?subject rdfs:subClassOf enve:Event}"
 
     def parseEventClasses(response: WSResponse): Array[String] = {
       val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
@@ -89,46 +101,64 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     sendResponse(executeQuery(eventClassesRequest), parseEventClasses)
   }
 
-  def insertEvent(message: InsertEvent): Unit = {
-    var insertRequest = "PREFIX enve: <http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#>\n" +
-      "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-      "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-      "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
-      "\n" +
+  /**
+    * Inserts an event in the fuseki server's ontology
+    *
+    * @param event event object containing event parameters
+    */
+  def insertEvent(event: InsertEvent): Unit = {
+    // FIXME: security flaw, this should be fixed using Jena Java library as shown here to create queries: https://morelab.deusto.es/code_injection/
+
+    var insertRequest = envePrefix + rdfsPrefix + rdfPrefix + xsdPrefix +
       "INSERT DATA\n" +
       "{\n"
     // TODO(archangel): change random value to a better one
-    insertRequest += "enve:event" + Random.nextInt() + " rdf:type enve:" + message.eventClass + " ;\n"
-    insertRequest += "enve:startDate \"" + message.startDate + "\"^^xsd:dateTime ;\n"
-    insertRequest += "enve:endDate \"" + message.endDate + "\"^^xsd:dateTime ;\n"
-    insertRequest += "enve:algorithm enve:" + message.algorithm + " ;\n"
+    insertRequest += "enve:event" + Random.nextInt() + " rdf:type enve:" + event.eventClass + " ;\n"
+    insertRequest += "enve:startDate \"" + event.startDate + "\"^^xsd:dateTime ;\n"
+    insertRequest += "enve:endDate \"" + event.endDate + "\"^^xsd:dateTime ;\n"
+    insertRequest += "enve:algorithm enve:" + event.algorithm + " ;\n"
 
-    message.imageLinks.foreach(link => {
+    event.imageLinks.foreach(link => {
       insertRequest += "enve:imageLink \"" + link + "\"^^xsd:anyURI ;\n"
     })
-    insertRequest += "enve:geoJson \"" + message.geoJson.toString().replace("\"", "\\\"") + "\"\n"
+    insertRequest += "enve:geoJson \"" + event.geoJson.toString().replace("\"", "\\\"") + "\"\n"
 
     insertRequest += "}"
 
-    def parseInsert(response: WSResponse): Array[String] = {
-      Array(response.statusText) // TODO: better response eventually
-    }
+    val currentSender = sender
 
-    sendResponse(executeUpdate(insertRequest), parseInsert)
-  }
+    val params = Map("update" -> Seq(insertRequest))
 
-  def executeUpdate(sparqlRequest: String): Future[WSResponse] = {
-    val params = Map("update" -> Seq(sparqlRequest))
-
-    ws.url(serverUrl + "/" + databaseName + "/update")
+    val request = ws.url(serverUrl + "/" + databaseName + "/update")
       .post(params)
+
+    request.map(response =>
+      if (response.status == 200) {
+        currentSender ! SparQLInsertResponse(response.statusText)
+      } else {
+        val error = (response.json \ "error").asOpt[String]
+        currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
+      }
+    )
   }
 
+  /**
+    * Executes a "query" SparQL request on the fuseki server using POST
+    *
+    * @param sparqlRequest the SparQL request we want to execute
+    * @return the request response's future
+    */
   def executeQuery(sparqlRequest: String): Future[WSResponse] =
     ws.url(serverUrl + "/" + databaseName + "/query")
       .withQueryString("query" -> sparqlRequest)
       .get()
 
+  /**
+    * Parses and sends the response to the sender
+    *
+    * @param request the resquest response's future we executed
+    * @param parser  the response's parser
+    */
   def sendResponse(request: Future[WSResponse], parser: WSResponse => Array[String]) {
     val currentSender = sender
 
