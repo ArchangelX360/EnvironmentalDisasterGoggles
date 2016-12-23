@@ -10,6 +10,8 @@ import threading
 from collections import deque
 from datetime import datetime
 
+from imagefetcher.utils import Error
+
 # We cannot use a flag here, because of how the application is designed.
 DEFAULT_QUERY_PER_SECONDS = 3
 OPENSTREETMAP_URL = 'http://nominatim.openstreetmap.org/search'
@@ -141,11 +143,11 @@ class ImageFetcher:
 
         if not result.ok:
             raise Error('Unable to fetch city name. OpenStreetMap status '
-                'code: %s' % result.status_code)
+                'code: %s' % result.status_code, 500)
 
         result_json = result.json()
         if len(result_json) == 0:
-            raise Error('Empty result received from the OpenStreetMap.')
+            raise Error('Empty result received from the OpenStreetMap.', 500)
 
         return ee.Geometry(result_json[0].get("geojson", []))
 
@@ -227,7 +229,7 @@ class ImageFetcher:
                 geo_json['coordinates']))
 
         if geo_json['type'] != 'MultiPolygon':
-            raise Error('Unsupported polygon type: %s' % geo_json['type'])
+            raise Error('Unsupported polygon type: %s' % geo_json['type'], 500)
 
         # At this point, all geo JSON are of type MultiPolygon. Since some
         # requests may contain multiple points on the earth (such as France's
@@ -236,7 +238,7 @@ class ImageFetcher:
         # We simply get the largest rectangle generated from the polygons. This
         # may not be accurate, but at least it works!
         def distance(x_min, y_min, x_max, y_max):
-            """Hamilton distance within two 2D points."""
+            """Manhattan distance within two 2D points."""
             return x_max - x_min + y_max - y_min
 
         max_distance, max_bounds = 0, None
