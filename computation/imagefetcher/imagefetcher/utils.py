@@ -99,16 +99,20 @@ def get_geometry(get_parameters):
 def scale_from_geometry(rectangle):
     """Attempts to compute a best scale based on the Image geometry.
 
+    Best scale is estimated rectangle area. The scale is (almost) proportionnal
+    with the area. This is done to avoid generating a too huge image using a
+    default scale.
+
     Parameters:
         rectangle: Rectangle generated from the client query.
     Returns:
         A 'best scale' based on the rectangle values.
     """
-    # Get the rectangle bounds
+    # Get the highest and lowest rectangle bounds
     x_0, y_0 = rectangle.toGeoJSON()['coordinates'][0][0]
     x_1, y_1 = rectangle.toGeoJSON()['coordinates'][0][2]
 
-    return int((abs(x_0 - x_1) + abs(y_0 - y_1)) * 80)
+    return int((abs(x_0 - x_1) * abs(y_0 - y_1) + 1) * 20)
 
 
 class Parser:
