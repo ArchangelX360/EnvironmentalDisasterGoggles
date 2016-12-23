@@ -7,7 +7,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import models.Query
 import models.Query.Queries
-import modules.imagefetcher.FetcherActor
+import modules.imagefetcher.{FetcherActor, ZipUtil}
 import modules.imagefetcher.FetcherActor.{DownloadFile, Downloaded, FetchRGB, FetchResponse}
 import modules.scheduler.MonitoringActor.{GetProcess, UpdateProcess}
 import modules.scheduler.SchedulerActor.{CancelProcessing, StartProcessing}
@@ -50,7 +50,9 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     * * Download image
     */
   def startProcessing(id: String): Unit = {
-      val details = monitoring
+
+    // Gather details about the query and register tasks with the monitoring actor
+    val details = monitoring
         .ask(GetProcess(id))
         .mapTo[Query]
         .map(query => query.details)
@@ -61,17 +63,21 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
             throw new Exception("no details")
         }
 
-      val url = details
-        .flatMap(details => fetcherActor.ask(FetchRGB("2015-01-01", details.place, Some(100), id)))
-        .mapTo[FetchResponse]
+    // Send processing request to Google Earth Engine using the python server
+    val url = details
+      .flatMap(details => fetcherActor.ask(FetchRGB("2015-01-01", details.place, Some(100), id)))
+      .mapTo[FetchResponse]
 
-      url.foreach(u => println(u.url))
+    // Download result from Earth Engine
+    val zip = url
+      .flatMap(response => fetcherActor.ask(DownloadFile(response.url, id)))
+      .mapTo[Downloaded]
 
-      val file = url
-        .flatMap(response => fetcherActor.ask(DownloadFile(response.url, id)))
-        .mapTo[Downloaded]
+    // Extract image from the zip file
+    val images = zip map (downloaded => ZipUtil.extractZip(downloaded.file))
 
-      file foreach (downloaded => println(downloaded.file.getAbsolutePath))
+    // Add further processing here
+    images foreach (file => println(file.map(f => f.getAbsolutePath).getOrElse("file not found in zip")))
 
   }
 
@@ -82,6 +88,5 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     val index = processes.indexWhere(query => query.id == id)
     processes.remove(index)
   }
-
 
 }
