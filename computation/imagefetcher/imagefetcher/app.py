@@ -81,7 +81,7 @@ def rgb_handler(date, polygon, place, country, city, scale, delta):
             City to visualize. Required, or country/polygon must be specified.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
-            better. Attempts to automatically generates it if not specified.
+            better. Attempts to automatically generate it if not specified.
         delta (yyyy-mm-dd):
             Delta within images are considered valid.
     Returns:
@@ -145,7 +145,7 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
             Must be greater than start year, and lower than current year.
         scale (float):
             Precision of the picture. Unit is meter per pixels so lower is
-            better. Attempts to automatically generates it if not specified.
+            better. Attempts to automatically generate it if not specified.
     Returns:
         A JSON containing metadata about the image:
             href (link):
