@@ -6,7 +6,7 @@ import java.io.{File, FileOutputStream}
 import akka.actor.{Actor, ActorRef, Props}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import akka.util.ByteString
+import akka.util.{ByteString, Timeout}
 import modules.scheduler.MonitoringActor.{StartTask, UpdateTask}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
@@ -15,6 +15,7 @@ import models.Task
 
 import scala.concurrent.duration._
 import scala.util.Random
+import scala.concurrent.duration._
 
 object FetcherActor {
 
@@ -29,11 +30,13 @@ object FetcherActor {
     */
   case class FetchRGB(date: String, place: String, scale: Option[Double], queryId: String)
   case class FetchResponse(url: String)
-  case class DownloadFile(url: String)
+  case class DownloadFile(url: String, queryId: String)
   case class Downloaded(file: File)
 }
 
 class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extends Actor {
+
+  implicit val timeout: Timeout = 5.seconds
 
   /**
     * Import implicit definition
@@ -46,7 +49,7 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
     */
   override def receive: Receive = {
     case message: FetchRGB => fetchImage(message)
-    case DownloadFile(url) => downloadFile(url)
+    case DownloadFile(url, queryId) => downloadFile(url, queryId)
     case _ => sender() ! "Image Fetcher not yet implemented"
   }
 
@@ -73,7 +76,7 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
 
     request.map ( response =>
         if (response.status == 200) {
-          task map (t => monitoring ! UpdateTask(message.queryId, t.id, Some("Link generated, downloading ..."), Some(20)))
+          task map (t => monitoring ! UpdateTask(message.queryId, t.id, Some("Image generated on Earth Engine"), Some(100)))
           val url = (response.json \ "href").as[String]
           currentSender ! FetchResponse(url)
         } else {
@@ -85,17 +88,23 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
   }
 
   /**
-    * Download a file from an url through an akka stream an place it a file
-    * (Downloaded file is not labeled yet)
+    * Download a file from an url through an akka stream an place it in the downloaded folder
+    * (Downloaded file is not labeled yet e.g random name)
     */
-  def downloadFile(url: String) = {
+  def downloadFile(url: String, processId: String) = {
+
+    val task = monitoring.ask(StartTask(processId, "Downloading image")).mapTo[Task]
 
     val currentSender = sender
 
-    val file = new File("Downloaded/" + Random.nextInt())
+    val downloaded = new File("Downloaded").mkdir()
+    val file = new File("Downloaded/" + Random.nextInt() + ".zip")
     val response = ws.url(url).withMethod("GET").stream()
 
     val downloadedFile = response.flatMap(res => {
+
+      task.map(t => monitoring ! UpdateTask(processId, t.id, Some("Download started"), Some(20)))
+
       val outputStream = new FileOutputStream(file)
 
       val sink = Sink.foreach[ByteString](bytes => outputStream.write(bytes.toArray))
@@ -103,12 +112,12 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
       res.body.runWith(sink).andThen {
         case result =>
           outputStream.close()
-          result.get
-      }.map(_ => file)
+          task.map(t => monitoring ! UpdateTask(processId, t.id, Some("Download finished"), Some(100)))
+          currentSender ! Downloaded(file)
+      }
 
     })
 
-    downloadedFile map (downloaded => sender ! Downloaded(downloaded))
   }
 
 }
