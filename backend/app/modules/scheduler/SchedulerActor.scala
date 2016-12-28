@@ -5,10 +5,11 @@ import akka.pattern.ask
 import akka.util.Timeout
 import models.Query
 import models.Query.Queries
-import modules.imagefetcher.FetcherActor.{DownloadFile, Downloaded, FetchRGB, FetchResponse}
 import modules.imagefetcher.{FetcherActor, ZipUtil}
+import modules.imagefetcher.FetcherActor.{DownloadFile, Downloaded, FetchRGB, FetchResponse}
 import modules.scheduler.MonitoringActor.{GetProcess, UpdateProcess}
 import modules.scheduler.SchedulerActor.{CancelProcessing, StartProcessing}
+import org.joda.time.format.DateTimeFormat
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
 
@@ -40,6 +41,11 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
   // TODO: Move this property to a config file
   val outputFolder = "Downloaded"
 
+  /**
+    * Date formatter used to convert Joda Time Instant to simple formatted string for earth engine request
+    */
+  private val fmt = DateTimeFormat.forPattern("yyyy-mm-dd")
+
   override def receive: Receive = {
     case StartProcessing(id) => startProcessing(id)
     case CancelProcessing(id) => cancelProcessing(id)
@@ -69,7 +75,7 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
 
     // Send processing request to Google Earth Engine using the python server
     val url = details
-      .flatMap(details => fetcherActor.ask(FetchRGB("2015-01-01", details.place, None, id)))
+      .flatMap(details => fetcherActor.ask(FetchRGB(fmt.print(details.from), details.place, None, id)))
       .mapTo[FetchResponse]
 
     // Download result from Earth Engine

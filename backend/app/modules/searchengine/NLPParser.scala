@@ -7,6 +7,7 @@ import edu.stanford.nlp.ling.CoreAnnotations
 import edu.stanford.nlp.ling.CoreAnnotations._
 import edu.stanford.nlp.pipeline.{Annotation, StanfordCoreNLP}
 import edu.stanford.nlp.time.{TimeAnnotations, TimeAnnotator, TimeExpression}
+import org.joda.time.Instant
 
 import scala.collection.JavaConverters._
 
@@ -59,7 +60,9 @@ class NLPParser(query: String) {
   /**
     * Extract dates from the query, the date extracted are formated following the TIMEX3 specification
     */
-  def extractDate(): List[String] = times.map(_.toString).toList
+  def extractDate(): List[Instant] = times
+    .map(suTime => suTime.getTime.getJodaTimeInstant)
+    .toList
 
   def extractPlace(): List[String] = entities
     .filter(token => token.nef == "PLACE" || token.nef == "LOCATION")

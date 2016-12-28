@@ -87,6 +87,10 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
         currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
       }
     )
+
+    request.onFailure {
+      case _ => task map (t => monitoring ! UpdateTask(message.queryId, t.id, Some("Connection to server (flask) failed"), Some(0)))
+    }
   }
 
   /**

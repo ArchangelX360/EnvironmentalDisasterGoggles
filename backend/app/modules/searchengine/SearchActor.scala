@@ -7,6 +7,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import models.{Query, Task}
 import modules.scheduler.MonitoringActor.{StartProcess, StartTask, UpdateTask}
+import org.joda.time.Instant
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{Json, Writes}
 
@@ -16,8 +17,9 @@ object SearchActor {
   def props(monitoring: ActorRef) = Props(new SearchActor(monitoring))
 
   case class SearchMessage(message: String, author: String)
-  case class SearchDetails(place: String, from: String, to: String, event:String)
+  case class SearchDetails(place: String, from: Instant, to: Instant, event:String)
 
+  implicit val instantWriters: Writes[Instant] = Writes.apply(time => Json.toJson(time.toString))
   implicit val responseWriters: Writes[SearchDetails] = Json.writes[SearchDetails]
 }
 
@@ -43,7 +45,7 @@ class SearchActor (monitoring: ActorRef) extends Actor {
 
   /**
     * Handle search message, send it to spotlight for TAL and contact other actors to schedule the processing
- *
+    *
     * @param message Search query send by the web interface
     * @return A confirmation that the message is scheduled for processing
     */
@@ -59,8 +61,8 @@ class SearchActor (monitoring: ActorRef) extends Actor {
 
     val details =  SearchDetails(
       place = place,
-      from = dates.headOption.getOrElse(""),
-      to = if (dates.isEmpty) "" else dates.tail.headOption.getOrElse(""),
+      from = dates.headOption.getOrElse(Instant.now()),
+      to = if (dates.isEmpty) Instant.now() else dates.tail.headOption.getOrElse(Instant.now()),
       event = "not defined yet")
 
     val schedulerResponse = (monitoring ? StartProcess(message, author, Some(details))).mapTo[Query]
