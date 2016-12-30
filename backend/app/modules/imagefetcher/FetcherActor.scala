@@ -12,6 +12,7 @@ import modules.scheduler.MonitoringActor.{StartTask, UpdateTask}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Random
 
@@ -26,6 +27,8 @@ object FetcherActor {
 
   // Messages definitions
   case class FetchRGB(date: String, place: String, scale: Option[Double], queryId: String)
+
+  case class FetchForestDiff(start: String, stop: String, place: String, scale: Option[Double], queryId: String)
 
   case class FetchResponse(url: String)
 
@@ -48,18 +51,17 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
     * Message handling
     */
   override def receive: Receive = {
-    case message: FetchRGB => fetchImage(message)
+    case message: FetchRGB => fetchRGB(message)
+    case message: FetchForestDiff => fetchForestDiff(message)
     case DownloadFile(url, queryId, outputFolder) => downloadFile(url, queryId, outputFolder)
     case _ => sender() ! "Image Fetcher not yet implemented"
   }
 
   /**
-    * Request the flask server to process image from Earth Engine and return the url to download the image
-    *
-    * @param message Details of the request sent to the python server
+    * Ask the flask server to generate an url to download a RGB image
+    * @param message Contains all the information about the request
     */
-  def fetchImage(message: FetchRGB): Unit = {
-
+  def fetchRGB(message: FetchRGB): Unit = {
     val task = monitoring.ask(StartTask(message.queryId, "Fetching image"))(50.seconds).mapTo[Task]
 
     val initialParams = Seq(
@@ -70,7 +72,39 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
       if (message.scale.isDefined) initialParams :+ ("scale", message.scale.get.toString)
       else initialParams
 
-    val request = ws.url(serverUrl + "/rgb")
+    fetchImage("/rgb", params, task, message.queryId)
+  }
+
+  /**
+    * Ask the flask server to generate an url to download a Forest Diff image
+    * @param message Contains all the information about the request
+    */
+  def fetchForestDiff(message: FetchForestDiff): Unit = {
+    val task = monitoring.ask(StartTask(message.queryId, "Fetching image"))(50.seconds).mapTo[Task]
+
+    val initialParams = Seq(
+      ("start", message.start),
+      ("stop", message.stop),
+      ("place", message.place))
+
+    val params =
+      if (message.scale.isDefined) initialParams :+ ("scale", message.scale.get.toString)
+      else initialParams
+
+    fetchImage("/forestDiff", params, task, message.queryId)
+  }
+
+  /**
+    * Request the flask server to process image from Earth Engine and return the url to download the image
+    *
+    * @param url Which url to ask for on the flask server
+    * @param params Parameters added to the Get request
+    * @param task Reference to the task monitoring this computation
+    * @param queryId Id of the query which triggered this request
+    */
+  def fetchImage(url: String, params: Seq[(String, String)], task: Future[Task], queryId: String): Unit = {
+
+    val request = ws.url(serverUrl + url)
       .withQueryString(params: _*)
       .get()
 
@@ -78,18 +112,18 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
 
     request.map(response =>
       if (response.status == 200) {
-        task map (t => monitoring ! UpdateTask(message.queryId, t.id, Some("Image generated on Earth Engine"), Some(100)))
+        task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Image generated on Earth Engine"), Some(100)))
         val url = (response.json \ "href").as[String]
         currentSender ! FetchResponse(url)
       } else {
-        task map (t => monitoring ! UpdateTask(message.queryId, t.id, Some("Link generation failed"), Some(0)))
+        task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Link generation failed"), Some(0)))
         val error = (response.json \ "error").asOpt[String]
         currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
       }
     )
 
     request.onFailure {
-      case _ => task map (t => monitoring ! UpdateTask(message.queryId, t.id, Some("Connection to server (flask) failed"), Some(0)))
+      case _ => task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Connection to server (flask) failed"), Some(0)))
     }
   }
 
