@@ -103,6 +103,9 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
     * @param queryId Id of the query which triggered this request
     */
   def fetchImage(url: String, params: Seq[(String, String)], task: Future[Task], queryId: String): Unit = {
+    val updatedTask = task.flatMap(task => monitoring
+      .ask(UpdateTask(queryId, task.id, Some("Fetching"), Some(5), Some(params.toMap)))
+      .mapTo[Task])
 
     val request = ws.url(serverUrl + url)
       .withQueryString(params: _*)
@@ -112,17 +115,18 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
 
     request.map(response =>
       if (response.status == 200) {
-        task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Image generated on Earth Engine"), Some(100)))
         val url = (response.json \ "href").as[String]
+        updatedTask map (t => monitoring ? UpdateTask(queryId, t.id, Some("Image generated on Earth Engine"), Some(100),
+                                               Some(t.metadata + ("url" -> url))))
         currentSender ! FetchResponse(url)
       } else {
         val error = (response.json \ "error").asOpt[String]
-        task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Link generation failed: " + error.getOrElse("no details")), Some(0)))
+        updatedTask map (t => monitoring ? UpdateTask(queryId, t.id, Some("Link generation failed: " + error.getOrElse("no details")), Some(0)))
       }
     )
 
     request.onFailure {
-      case _ => task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Connection to server (flask) failed"), Some(0)))
+      case _ => updatedTask map (t => monitoring ? UpdateTask(queryId, t.id, Some("Connection to server (flask) failed"), Some(0)))
     }
   }
 
@@ -135,18 +139,16 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
     * @param outputFolder Folder in which the file will be downloaded
     */
   def downloadFile(url: String, processId: String, outputFolder: String): Unit = {
-
     val task = monitoring.ask(StartTask(processId, "Downloading image")).mapTo[Task]
     val currentSender = sender
 
     // Create the directory to store downloaded files
     new File(outputFolder).mkdir()
-    val file = new File("Downloaded/" + Random.nextInt() + ".zip")
+    val file = new File(outputFolder + "/" + Random.nextInt() + ".zip")
     val response = ws.url(url).withMethod("GET").stream()
 
     response.flatMap(res => {
-
-      task.map(t => monitoring ! UpdateTask(processId, t.id, Some("Download started"), Some(20)))
+      task.map(t => monitoring ? UpdateTask(processId, t.id, Some("Download started"), Some(20)))
 
       val outputStream = new FileOutputStream(file)
       val sink = Sink.foreach[ByteString](bytes => outputStream.write(bytes.toArray))
@@ -154,12 +156,15 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
       res.body.runWith(sink).andThen {
         case _ =>
           outputStream.close()
-          task.map(t => monitoring ! UpdateTask(processId, t.id, Some("Download finished"), Some(100)))
+          val metadata = Map(
+            "url" -> url,
+            "outputFolder" -> outputFolder,
+            "file" -> file.getName
+          )
+          task.map(t => monitoring ? UpdateTask(processId, t.id, Some("Download finished"),
+                                                Some(100), Some(metadata)))
           currentSender ! Downloaded(file)
       }
-
     })
-
   }
-
 }

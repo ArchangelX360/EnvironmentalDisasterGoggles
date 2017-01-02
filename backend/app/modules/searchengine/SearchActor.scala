@@ -33,7 +33,7 @@ class SearchActor (monitoring: ActorRef) extends Actor {
   /**
     * after this delay the server send a timeout, however the process is still running
     */
-  implicit val timeout: Timeout = 5.seconds
+  implicit val timeout: Timeout = 50.seconds
 
   /**
     * Handle incoming message send to this actor
@@ -70,7 +70,7 @@ class SearchActor (monitoring: ActorRef) extends Actor {
     schedulerResponse map (query => {
       monitoring.ask(StartTask(query.id, "Search task"))
         .mapTo[Task]
-        .foreach(task => monitoring ! UpdateTask(query.id, task.id, Some("completed"), Some(100)))
+        .foreach(task => monitoring ? UpdateTask(query.id, task.id, Some("completed"), Some(100)))
 
       currentSender ! query
     })

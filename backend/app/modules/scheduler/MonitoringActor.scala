@@ -24,7 +24,8 @@ object MonitoringActor {
   case class GetProcess(id: String)
 
   case class StartTask(processId: String, name: String)
-  case class UpdateTask(processId: String, taskId: String, status: Option[String] = None, progress: Option[Int] = None)
+  case class UpdateTask(processId: String, taskId: String, status: Option[String] = None,
+                        progress: Option[Int] = None, metadata: Option[Map[String, String]] = None)
 }
 
 class MonitoringActor(processList: Queries) extends Actor {
@@ -111,10 +112,10 @@ class MonitoringActor(processList: Queries) extends Actor {
 
     if (process.isDefined && taskIndex.isDefined) {
       val task = process.get.tasks(taskIndex.get)
-      val newTask = Task(task.id, task.name, taskInfo.status.getOrElse(task.status), taskInfo.progress.getOrElse(task.progress), task.metadata)
+      val newTask = Task(task.id, task.name, taskInfo.status.getOrElse(task.status),
+        taskInfo.progress.getOrElse(task.progress), taskInfo.metadata.getOrElse(task.metadata))
       process.get.tasks.update(taskIndex.get, newTask)
+      sender ! newTask
     }
-
   }
-
 }
