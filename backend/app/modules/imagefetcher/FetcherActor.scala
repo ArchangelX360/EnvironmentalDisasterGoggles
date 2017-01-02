@@ -116,9 +116,8 @@ class FetcherActor(ws: WSClient, serverUrl: String, monitoring: ActorRef) extend
         val url = (response.json \ "href").as[String]
         currentSender ! FetchResponse(url)
       } else {
-        task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Link generation failed"), Some(0)))
         val error = (response.json \ "error").asOpt[String]
-        currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
+        task map (t => monitoring ! UpdateTask(queryId, t.id, Some("Link generation failed: " + error.getOrElse("no details")), Some(0)))
       }
     )
 
