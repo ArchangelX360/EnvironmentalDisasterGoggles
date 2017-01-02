@@ -106,7 +106,7 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     */
   def cancelProcessing(id: String): Unit = {
     val index = processes.indexWhere(query => query.id == id)
-    processes.remove(index)
+    if (index >= 0) processes.remove(index)
   }
 
   /**
