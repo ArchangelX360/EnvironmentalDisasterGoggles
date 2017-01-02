@@ -47,7 +47,7 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
   /**
     * Date formatter used to convert Joda Time Instant to simple formatted string for earth engine request
     */
-  private val fullFmt = DateTimeFormat.forPattern("yyyy-mm-dd")
+  private val fullFmt = DateTimeFormat.forPattern("yyyy-MM-dd")
   private val shortFmt = DateTimeFormat.forPattern("yyyy")
 
   override def receive: Receive = {
