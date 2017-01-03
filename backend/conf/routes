@@ -2,6 +2,8 @@ GET         /                                 controllers.Index.main
 
 POST        /search                           controllers.SearchController.search
 
+GET         /images/:file                     controllers.SearchController.getImage(file: String)
+
 GET         /monitoring/queries               controllers.SchedulerController.getProcess
 
 POST        /process/start/:id                controllers.SchedulerController.startProcessing(id: String)
