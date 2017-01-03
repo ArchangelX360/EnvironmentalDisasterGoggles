@@ -30,7 +30,7 @@
   margin-left: 20px!important;
 }
 
-.query .status-visual-indicator {
+.status-visual-indicator {
   width: 11px;
   height: 11px;
   margin-left: 5px;
@@ -60,4 +60,12 @@
 .query-task h4 {
   font-size: 15px;
   color: #444444;
+}
+
+.query .green {
+  background-color: #1B9A59!important;
+  color: #fff!important;
+  margin-left: 45px;
+  margin-bottom: 25px;
+  cursor: pointer!important;
 }
