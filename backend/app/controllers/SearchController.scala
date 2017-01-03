@@ -1,5 +1,6 @@
 package controllers
 
+import java.io.File
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
@@ -48,6 +49,10 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
           .mapTo[Query]
           .map(response => Ok(Json.toJson(response)))
 
+  }
+
+  def getImage(file: String) = Action {
+    Ok.sendFile(new File("Downloaded/" + file))
   }
 
 }

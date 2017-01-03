@@ -92,9 +92,6 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     val rgbImage = downloadAndExtractImage(rgbUrl, id)
     val forestDiffImage = downloadAndExtractImage(forestDiffUrl, id)
 
-    rgbImage foreach (file => println(file.map(f => f.getAbsolutePath).getOrElse("file (rhb) not found in zip")))
-    forestDiffImage foreach (file => println(file.map(f => f.getAbsolutePath).getOrElse("file (diff) not found in zip")))
-
     // TODO: Add forest diff processing here
 
     // TODO: Add ontology processing here
