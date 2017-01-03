@@ -28,7 +28,7 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
   /**
     * Do no send a response after this delay, the processing is not canceled anyway
     */
-  implicit val timeout: Timeout = 15.seconds
+  implicit val timeout: Timeout = 50.seconds
 
   /**
     * Forward the message to the search actor and notify the sender that the processing have been scheduled

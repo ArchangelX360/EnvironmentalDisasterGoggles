@@ -42,6 +42,7 @@ class MonitoringActor(processList: Queries) extends Actor {
     case StartProcess(query, author, details) => sender ! startProcess(query, author, details)
     case ListProcess(status) => sender ! listProcess(status)
     case GetProcess(id) => getProcess(id)
+    case UpdateProcess(id, status) => updateProcess(id, status)
     case task: StartTask => startTask(task)
     case task: UpdateTask => updateTask(task)
     case _ => ()
@@ -117,5 +118,12 @@ class MonitoringActor(processList: Queries) extends Actor {
       process.get.tasks.update(taskIndex.get, newTask)
       sender ! newTask
     }
+  }
+
+  def updateProcess(id: String, status: String): Unit = {
+    val process = processList
+      .find(q => q.id == id)
+
+    process foreach (query => processList.update(processList.indexOf(query), query.copy(status=status)))
   }
 }

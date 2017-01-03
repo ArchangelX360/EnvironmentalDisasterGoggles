@@ -65,10 +65,10 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     */
   def startProcessing(id: String): Unit = {
 
+    val process = monitoring.ask(GetProcess(id)).mapTo[Query]
+
     // Gather details about the query and register tasks with the monitoring actor
-    val details = monitoring
-      .ask(GetProcess(id))
-      .mapTo[Query]
+    val details = process
       .map(query => query.details)
       .map {
         case Some(detail) => detail
@@ -95,6 +95,10 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
     // TODO: Add forest diff processing here
 
     // TODO: Add ontology processing here
+
+    rgbImage.zip(forestDiffImage).zip(process).map (
+      _ => monitoring.ask(UpdateProcess(id, "terminated"))
+    )
 
   }
 
