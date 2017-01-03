@@ -5,11 +5,11 @@ import java.io.File
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import models.Query
+import models.{Query, Task}
 import models.Query.Queries
 import modules.imagefetcher.{FetcherActor, ZipUtil}
 import modules.imagefetcher.FetcherActor._
-import modules.scheduler.MonitoringActor.{GetProcess, UpdateProcess}
+import modules.scheduler.MonitoringActor.{GetProcess, StartTask, UpdateProcess, UpdateTask}
 import modules.scheduler.SchedulerActor.{CancelProcessing, StartProcessing}
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -121,8 +121,14 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
       .flatMap(url => fetcherActor.ask(DownloadFile(url, queryId, outputFolder)))
       .mapTo[Downloaded]
 
+    val unzipTask = zip flatMap  (_ => monitoring.ask(StartTask(queryId, "Extracting image")).mapTo[Task])
+
     // Extract image from the zip file
     val images = zip map (downloaded => ZipUtil.extractZip(downloaded.file, outputFolder = outputFolder))
+
+    images.zip(unzipTask).foreach {
+      case (file, task) => monitoring ? UpdateTask(queryId, task.id, Some("Extracted"), Some(100), Some(Map("file" -> file.map(_.getName).getOrElse("failed"))))
+    }
 
     images
   }
