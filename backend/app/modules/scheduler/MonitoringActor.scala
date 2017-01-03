@@ -19,7 +19,7 @@ object MonitoringActor {
     * Message definition
     */
   case class StartProcess(query: String, author: String,  details: Option[SearchDetails])
-  case class UpdateProcess(id: String, status: String)
+  case class UpdateProcess(id: String, status: String, metadata: Option[Map[String, String]] = None)
   case class ListProcess(status: Option[String] = None)
   case class GetProcess(id: String)
 
@@ -42,7 +42,7 @@ class MonitoringActor(processList: Queries) extends Actor {
     case StartProcess(query, author, details) => sender ! startProcess(query, author, details)
     case ListProcess(status) => sender ! listProcess(status)
     case GetProcess(id) => getProcess(id)
-    case UpdateProcess(id, status) => updateProcess(id, status)
+    case UpdateProcess(id, status, metadata) => updateProcess(id, status, metadata)
     case task: StartTask => startTask(task)
     case task: UpdateTask => updateTask(task)
     case _ => ()
@@ -58,7 +58,8 @@ class MonitoringActor(processList: Queries) extends Actor {
       name = query,
       author = author,
       status = "started",
-      tasks = mutable.ListBuffer.empty)
+      tasks = mutable.ListBuffer.empty,
+      metadata = Map.empty)
 
     processList += process
 
@@ -120,10 +121,11 @@ class MonitoringActor(processList: Queries) extends Actor {
     }
   }
 
-  def updateProcess(id: String, status: String): Unit = {
+  def updateProcess(id: String, status: String, metadata: Option[Map[String, String]]): Unit = {
     val process = processList
       .find(q => q.id == id)
 
-    process foreach (query => processList.update(processList.indexOf(query), query.copy(status=status)))
+    process foreach (query => processList.update(processList.indexOf(query),
+      query.copy(status=status, metadata = metadata.getOrElse(query.metadata))))
   }
 }

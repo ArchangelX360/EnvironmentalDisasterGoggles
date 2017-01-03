@@ -96,9 +96,13 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
 
     // TODO: Add ontology processing here
 
-    rgbImage.zip(forestDiffImage).zip(process).map (
-      _ => monitoring.ask(UpdateProcess(id, "terminated"))
-    )
+    rgbImage.zip(forestDiffImage).zip(process).map {
+      case ((rgb, forest), query) =>
+        monitoring.ask(UpdateProcess(id, "terminated", Some(Map(
+          "rgb" -> rgb.map(_.getName).getOrElse(""),
+          "forest" -> forest.map(_.getName).getOrElse("")
+        ))))
+    }
 
   }
 
