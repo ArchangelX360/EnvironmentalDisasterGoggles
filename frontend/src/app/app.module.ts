@@ -13,6 +13,8 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { ViewerComponent } from './monitoring/viewer.component';
 import { MonitoringComponent } from './monitoring/monitoring.component';
 import { MonitoringService } from './services/monitoring.service';
+import { ResultsComponent } from './results/results.component';
+import { ResultsService } from './services/results.service';
 import { AuthorQueriesPipe } from './pipes/author-queries.pipe';
 import { QueryComponent } from './monitoring/query.component';
 import { TaskComponent } from './monitoring/task.component';
@@ -26,6 +28,7 @@ import {SearchResultDialog} from "./search-bar/search-result.component";
     PageNotFoundComponent,
     ViewerComponent,
     MonitoringComponent,
+    ResultsComponent,
     AuthorQueriesPipe,
     QueryComponent,
     TaskComponent
@@ -40,7 +43,8 @@ import {SearchResultDialog} from "./search-bar/search-result.component";
   providers: [
     QuerySenderService,
     appRoutingProviders,
-    MonitoringService
+    MonitoringService,
+    ResultsService
   ],
   entryComponents: [
     SearchResultDialog

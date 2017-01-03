@@ -1,0 +1,20 @@
+<section class="request-result" *ngIf="query">
+
+  <h3 md-subheader>
+    <div class="status-visual-indicator"></div>
+    {{query.name}} ({{query.author}}) -- {{query.status}}
+  </h3>
+
+  <md-tab-group>
+    <md-tab label="Results">
+    </md-tab>
+
+    <md-tab label="NLP Interpretation">
+    </md-tab>
+
+    <md-tab label="Query Steps">
+
+    </md-tab>
+  </md-tab-group>
+
+</section>
