@@ -15,10 +15,10 @@ case class Pixel(x: Integer, y: Integer, value: Integer) {
   lazy val blue: Integer = value & 0x0000ff
 
   /**
-    * Distance from one pixel to another pixel, using Euclidian distance
+    * Computes the euclidean distance between two clusters
     *
-    * @param other Another pixel to mesure difference
-    * @return The euclidan distance between self and the other pixel.
+    * @param other Another pixel to measure difference
+    * @return The euclidean distance between self and the other pixel.
     */
   def distance(other: Pixel): Double = {
     Math.sqrt(Math.pow(x - other.x, 2) + Math.pow(y - other.y, 2))

@@ -11,9 +11,8 @@ import scala.collection.mutable.ListBuffer
 /**
   * Utility class generating a cluster of points from an Image.
   *
-  * This class read an RGB image, get channels to clusterize (e.g. Red only or
-  * average between multiple channels) and, using a treshold value, create
-  * clusters of points.
+  * This class reads an RGB image, gets channels to clusterize (currently only
+  * the red channel) and, using a threshold value, creates clusters of points.
   *
   * As an example, suppose we have the following red channel :
   *     255 234 180 120 97  123 12
@@ -22,44 +21,40 @@ import scala.collection.mutable.ListBuffer
   *     12  54  91  251 200 100 0
   *     0   15  71  161 182 190 100
   *
-  * Using the a treshold value of 200, we will set to one all points above the
-  * treshold to 1 and the other ones to 0:
+  * This class will get all pixels matching a specific threshold value (here,
+  * 200). The representation of the selected pixels would be:
   *     1 1 0 0 0 0 0
   *     1 1 0 0 0 0 0
   *     0 0 0 1 1 0 0
   *     0 0 0 1 1 0 0
   *     0 0 0 0 0 0 0
   *
-  * On this matrice we can see two different groups of pixels. This class will
+  * On this matrix we can see two different groups of pixels. This class will
   * generate two cluster, one in (x: 1/2, y: 1/2) and the other one in (x: 9/2,
-  * y: 9/2), both with a radius of the maximum distance from the baricentre,
+  * y: 9/2), both with a radius of the maximum distance from the barycentre,
   * i.e. sqrt(1/2) ~= 0.7.
   */
 class Clusterizer(imageFile: File) {
 
-  /**
-    * Lazy load of the image pixels
-    */
+  /** Load the image */
   val image: BufferedImage = ImageIO.read(imageFile)
 
-  /**
-    * Image width.
-    */
+  /** Image width. */
   lazy val width: Int = image.getWidth
 
-  /**
-    * Image height.
-    */
+  /** Image height. */
   lazy val height: Int = image.getHeight
 
   /**
-    * Treshold value used to transform the image from a standard matrix to a
+    * Threshold value used to transform the image from a standard matrix to a
     * matrix of truly values. Must be contained between 0 and 255.
+    *
+    * TODO(funkysayu): Modifying this variable is not supported at the moment
     */
   var threshold = 200
 
   /**
-    * Check if the pixel is matching the threshold
+    * Checks if the pixel is matching the threshold
     *
     * @param pixel Pixel to check
     * @return True if the pixel is above the threshold limit
@@ -67,12 +62,14 @@ class Clusterizer(imageFile: File) {
   def matchTreshold(pixel: Pixel): Boolean = pixel.red >= threshold
 
   /**
-    * Cluster generator.
+    * Generates clusters from the image.
     *
     * Each iteration merges one or multiple clusters with minimal distance
     * between them.
     *
     * @param current Current pixel to analyze
+    * @param accumulator Accumulated result, used to tail recursion.
+    * @return The list of initial clusters, extracted from the image.
     */
   @tailrec
   private def generateClusters(current: Int = 0,
@@ -95,7 +92,7 @@ class Clusterizer(imageFile: File) {
   var clusters: ListBuffer[Cluster] = generateClusters()
 
   /**
-    * Merge the clusters based on a list of merge operations.
+    * Merges the clusters based on a list of merge operations.
     *
     * @param mergeOperations list of operations to apply on the cluster. Each
     *                        operation consists of two clusters to merge.
@@ -120,7 +117,7 @@ class Clusterizer(imageFile: File) {
     }
 
   /**
-    * Create the list of merge operations to do.
+    * Creates the list of merge operations to do.
     *
     * Merge operations are composed to two clusters to merge. This is based
     * on the lowest distance within two clusters.

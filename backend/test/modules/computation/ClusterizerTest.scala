@@ -17,6 +17,7 @@ class ClusterizerTest extends PlaySpec {
     .build()
 
   "The Clusterizer loader" must {
+    
     "loads correctly a custom generated image" in {
       val clusterizer = new Clusterizer(
         application.getFile("test/resources/simpleForestDiff.png"))
@@ -30,6 +31,7 @@ class ClusterizerTest extends PlaySpec {
       val clusterizer = new Clusterizer(
         application.getFile("test/resources/realSampleForestDiff.png"))
     }
+
   }
 
   "The Clusterizer util" must {
@@ -134,6 +136,7 @@ class ClusterizerTest extends PlaySpec {
       }
       checkClusters(expectedClusters, clusters)
     }
+
   }
 
 }

@@ -8,6 +8,7 @@ import org.scalatestplus.play._
 class ClusterTest extends PlaySpec {
 
   "A Cluster" must {
+
     "computes its size correctly" in {
       var cluster = Cluster(List(Pixel(0, 0, 0), Pixel(1, 1, 1)))
       cluster.size mustBe 2
@@ -15,6 +16,7 @@ class ClusterTest extends PlaySpec {
       cluster = Cluster(List(Pixel(1, 1, 1)))
       cluster.size mustBe 1
     }
+
     "computes its baricentre correctly" in {
       var cluster = Cluster(List(Pixel(0, 0, 0), Pixel(1, 1, 0)))
       cluster.x mustBe 0.5
@@ -36,6 +38,7 @@ class ClusterTest extends PlaySpec {
       cluster.x mustBe 2
       cluster.y mustBe 2
     }
+
     "evaluates its distance to another cluster correctly" in {
       val first = Cluster(List(Pixel(0, 0, 0), Pixel(2, 2, 0)))
       val second = Cluster(List(Pixel(3, 4, 0), Pixel(5, 6, 0)))
@@ -45,6 +48,7 @@ class ClusterTest extends PlaySpec {
       first.distance(second) mustBe 5
       // TODO(funkysayu): test already computed distances are cached
     }
+
     "merges another cluster in place" in {
       val initial = List(Pixel(0, 0, 0), Pixel(2, 2, 0))
       val first = Cluster(initial)
@@ -61,6 +65,7 @@ class ClusterTest extends PlaySpec {
       second.x mustBe 4
       second.y mustBe 5
     }
+
     "merges correctly another cluster with different size" in {
       val initial = List(Pixel(0, 0, 0))
       val first = Cluster(initial)
@@ -72,6 +77,7 @@ class ClusterTest extends PlaySpec {
       first.y mustBe 4
       first.pixels mustBe (initial ::: second.pixels)
     }
+
   }
 
 }
