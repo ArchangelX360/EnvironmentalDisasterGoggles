@@ -4,7 +4,9 @@ POST        /search                           controllers.SearchController.searc
 
 GET         /images/:file                     controllers.SearchController.getImage(file: String)
 
-GET         /monitoring/queries               controllers.SchedulerController.getProcess
+GET         /monitoring/queries               controllers.SchedulerController.getProcesses
+
+GET         /monitoring/queries/:id           controllers.SchedulerController.getProcess(id: String)
 
 POST        /process/start/:id                controllers.SchedulerController.startProcessing(id: String)
 

@@ -9,7 +9,7 @@ import modules.scheduler.MonitoringActor._
 import modules.scheduler.SchedulerService
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, AnyContent, Controller}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -40,10 +40,20 @@ class SchedulerController @Inject() (schedulerService: SchedulerService) extends
     *
     * @return The list of all tasks executed by the server
     */
-  def getProcess = Action.async {
+  def getProcesses = Action.async {
     (monitoringActor ? ListProcess())
       .mapTo[Queries]
       .map(process => Ok(Json.toJson(process)))
+  }
+
+  /**
+    * @param id identifier of the query to consult
+    * @return The query including all the tasks associated and the details
+    */
+  def getProcess(id: String) = Action.async {
+    (monitoringActor ? GetProcess(id))
+      .mapTo[Query]
+      .map(query => Ok(Json.toJson(query)))
   }
 
   /**
