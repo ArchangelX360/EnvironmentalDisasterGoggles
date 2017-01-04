@@ -8,6 +8,7 @@ import org.scalatestplus.play._
 class PixelTest extends PlaySpec {
 
   "A Pixel" must {
+
     "compute RGB values correctly" in {
       val pixel = Pixel(0, 0, 0xabcdef)
 
@@ -15,6 +16,7 @@ class PixelTest extends PlaySpec {
       pixel.green mustBe 0xcd
       pixel.blue mustBe 0xef
     }
+
     "compute distance from another pixel correctly" in {
       val pixel = Pixel(2, 2, 0x0)
 
@@ -25,6 +27,7 @@ class PixelTest extends PlaySpec {
       val xyMoved = Pixel(5, 6, 0x0)
       pixel.distance(xyMoved) mustBe 5
     }
+
   }
 
 }
