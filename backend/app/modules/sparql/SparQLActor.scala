@@ -40,9 +40,10 @@ object SparQLActor {
   case class FetchEventClasses()
 
   /**
-    * @param startDate start date string formatted as xsd:DateTime
-    * @param endDate   end date string formatted as xsd:DateTime
-    * @param place     place where the event took place
+    * @param startDate  start date string formatted as xsd:DateTime
+    * @param endDate    end date string formatted as xsd:DateTime
+    * @param eventClass event class formatted as a string like "Deforestation" or "Urbanisation"
+    * @param place      place where the event took place
     */
   case class CacheParameters(startDate: String, endDate: String, eventClass: String, place: String)
 
