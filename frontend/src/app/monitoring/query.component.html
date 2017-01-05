@@ -4,6 +4,6 @@
     {{query.name}} ({{query.author}}) -- {{query.status}}
   </h3>
   <section class="query-tasks"><app-task *ngFor="let task of query.tasks" [task]="task"></app-task></section>
-  <a *ngIf="query.status == 'started'" class="green" type="button" md-raised-button href="/requests/{{query.id}}">Request result</a>
+  <a *ngIf="query.status == 'terminated'" class="green" type="button" md-raised-button href="/requests/{{query.id}}">Request result</a>
   <md-divider></md-divider>
 </section>

@@ -13,7 +13,7 @@ export class ResultsService {
     let url = 'http://localhost:9000/monitoring/queries/'+queryID;
 
     return this.http.get(url)
-      .map((response) => <Query> (response.json()))
+      .map((response) => <Query> response.json())
       .catch((error) => {
         return Observable.throw(error)
       });

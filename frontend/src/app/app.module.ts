@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { MaterialModule } from '@angular/material';
+import 'hammerjs';
 
 import { AppComponent } from './app.component';
 import { SearchBarComponent } from './search-bar/search-bar.component';
@@ -18,7 +19,7 @@ import { ResultsService } from './services/results.service';
 import { AuthorQueriesPipe } from './pipes/author-queries.pipe';
 import { QueryComponent } from './monitoring/query.component';
 import { TaskComponent } from './monitoring/task.component';
-import {SearchResultDialog} from "./search-bar/search-result.component";
+import { SearchResultDialog } from "./search-bar/search-result.component";
 
 @NgModule({
   declarations: [
