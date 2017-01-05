@@ -10,7 +10,7 @@ import unittest
 from itertools import combinations
 
 import app
-from imagefetcher.utils import Parser
+from utils import Parser
 
 FLAGS = gflags.FLAGS
 

@@ -5,3 +5,4 @@ mock
 flask
 python-gflags
 python-dateutil
+requests

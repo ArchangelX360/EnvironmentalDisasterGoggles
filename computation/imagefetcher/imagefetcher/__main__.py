@@ -12,7 +12,7 @@ This will startup the Flask application.
 import sys
 import gflags
 
-from imagefetcher.app import app
+from app import app
 
 FLAGS = gflags.FLAGS
 
