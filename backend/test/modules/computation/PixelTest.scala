@@ -17,7 +17,7 @@ class PixelTest extends PlaySpec {
       pixel.blue mustBe 0xef
     }
 
-    "compute distance from another pixel correctly" in {
+    "compute Hamilton distance from another pixel correctly" in {
       val pixel = Pixel(2, 2, 0x0)
 
       val xMoved = Pixel(2, 0, 0x0)
@@ -25,7 +25,7 @@ class PixelTest extends PlaySpec {
       val yMoved = Pixel(0, 2, 0x0)
       pixel.distance(yMoved) mustBe 2
       val xyMoved = Pixel(5, 6, 0x0)
-      pixel.distance(xyMoved) mustBe 5
+      pixel.distance(xyMoved) mustBe 7
     }
 
   }
