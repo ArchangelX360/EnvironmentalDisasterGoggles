@@ -7,4 +7,4 @@ ENV HOME /usr/src/app
 RUN mkdir -p /usr/src/app/.config/earthengine
 COPY earthengine_token.json /usr/src/app/.config/earthengine/credentials
 
-CMD [ "python", "imagefetcher/__main__.py" ]
+ENTRYPOINT [ "python", "imagefetcher/__main__.py" ]
