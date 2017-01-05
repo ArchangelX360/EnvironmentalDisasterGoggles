@@ -3,6 +3,7 @@ package modules.scheduler
 import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.{Inject, Singleton}
 import models.Query.Queries
+import modules.sparql.SparQLActor
 import play.api.libs.ws.WSClient
 
 import scala.collection.mutable.ListBuffer
@@ -25,6 +26,13 @@ class SchedulerService @Inject() (system: ActorSystem, ws: WSClient, configurati
     * The scheduler actor manage the lifecycle of tasks within a query
     */
   val schedulerActor: ActorRef = system.actorOf(SchedulerActor.props(processes, configuration, ws, monitoringActor))
+
+  /**
+    * The sparQL actor handle all request to the Fuseki Server and abstract the ontology
+    */
+  val sparQLActor: ActorRef = system.actorOf(SparQLActor.props(ws,
+    configuration.underlying.getString("pfs.servers.fusekiServerUrl"),
+    configuration.underlying.getString("pfs.servers.fusekiDBName")))
 
 
 }
