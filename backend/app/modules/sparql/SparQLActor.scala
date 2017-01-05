@@ -34,9 +34,8 @@ object SparQLActor {
     */
   case class InsertEvent(eventClass: String, algorithm: String,
                          startDate: String, endDate: String,
-                         imageLinks: Array[String], geoJson: JsValue)
-
-  case class FetchAllGeoJSON()
+                         place: String,
+                         imageLinks: Array[String])
 
   case class FetchEventClasses()
 
@@ -65,24 +64,8 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     */
   override def receive: Receive = {
     case _: FetchEventClasses => fetchEventClasses()
-    case _: FetchAllGeoJSON => fetchAllGeoJSON()
     case message: InsertEvent => insertEvent(message)
     case _ => throw new InvalidParameterException()
-  }
-
-  /**
-    * Fetches all geoJSON strings in the fuseki server's ontology
-    */
-  def fetchAllGeoJSON(): Unit = {
-    val geoJsonRequest = envePrefix + rdfsPrefix +
-      "SELECT ?object WHERE {?subject enve:geoJson ?object}"
-
-    def parseGeoJson(response: WSResponse): Array[String] = {
-      val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
-      resJson.map(x => (x \ "object" \ "value").as[String])
-    }
-
-    sendResponse(executeQuery(geoJsonRequest), parseGeoJson)
   }
 
   /**
@@ -112,16 +95,16 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     var insertRequest = envePrefix + rdfsPrefix + rdfPrefix + xsdPrefix +
       "INSERT DATA\n" +
       "{\n"
-    // TODO(archangel): change random value to a better one
-    insertRequest += "enve:event" + Random.nextInt() + " rdf:type enve:" + event.eventClass + " ;\n"
+    insertRequest += "enve:event" + System.currentTimeMillis() + Random.nextInt() + " rdf:type enve:" + event.eventClass + " ;\n"
     insertRequest += "enve:startDate \"" + event.startDate + "\"^^xsd:dateTime ;\n"
     insertRequest += "enve:endDate \"" + event.endDate + "\"^^xsd:dateTime ;\n"
     insertRequest += "enve:algorithm enve:" + event.algorithm + " ;\n"
+    insertRequest += "enve:location \"" + event.place + "\"^^xsd:string ;\n"
+    // TODO(archangel): use dbo:Place type instead of xsd:string
 
     event.imageLinks.foreach(link => {
       insertRequest += "enve:imageLink \"" + link + "\"^^xsd:anyURI ;\n"
     })
-    insertRequest += "enve:geoJson \"" + event.geoJson.toString().replace("\"", "\\\"") + "\"\n"
 
     insertRequest += "}"
 

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
-    <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base="">
-        <uri id="Automatically generated entry, Timestamp=1481725832055" name="http://www.co-ode.org/ontologies/pizza/pizza.owl" uri="apache-jena-3.1.1/src-examples/jena-examples/src/main/resources/data/pizza.owl.rdf"/>
-        <uri id="Automatically generated entry, Timestamp=1481725832055" name="http://www.eswc2006.org/technologies/ontology" uri="apache-jena-3.1.1/src-examples/data/eswc-2006-09-21.rdf"/>
-        <uri id="Automatically generated entry, Timestamp=1481725832055" name="http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events" uri="ontology-events.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1481725832055" name="http://www.xfront.com/owl/ontologies/camera/" uri="apache-jena-3.1.1/src-examples/data/camera.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1481725832055" name="urn:x-hp-jena:test1" uri="apache-jena-3.1.1/src-examples/data/test1.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1481725832055" name="urn:x-hp-jena:test2" uri="apache-jena-3.1.1/src-examples/data/test2.owl"/>
-    </group>
+    <uri id="Imports Wizard Entry" name="http://dbpedia.org/ontology/" uri="http://downloads.dbpedia.org/2015-10/dbpedia_2015-10.owl"/>
+    <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base=""/>
 </catalog>

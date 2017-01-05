@@ -4,169 +4,207 @@
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix environmental-events: <http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#> .
-@base <http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events> .
 
-<http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events> rdf:type owl:Ontology .
+<http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events> a owl:Ontology .
+# 
+# 
+# #################################################################
+# #
+# #    Object Properties
+# #
+# #################################################################
+# 
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#algorithm
 
-#################################################################
-#    Object Properties
-#################################################################
+:algorithm a owl:ObjectProperty ;
+	rdfs:subPropertyOf owl:topObjectProperty ;
+	rdfs:domain :Event ;
+	rdfs:range :Algorithm .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#location
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#algorithm
-environmental-events:algorithm rdf:type owl:ObjectProperty ;
-                               rdfs:subPropertyOf owl:topObjectProperty ;
-                               rdfs:domain environmental-events:Event ;
-                               rdfs:range environmental-events:Algorithm .
+:location a owl:ObjectProperty ;
+	rdfs:subPropertyOf owl:topObjectProperty ;
+	rdfs:domain :Event ;
+	rdfs:range <http://dbpedia.org/ontology/Place> .
 
+<http://dbpedia.org/ontology/Place> a owl:Class .
+# 
+# 
+# 
+# #################################################################
+# #
+# #    Data properties
+# #
+# #################################################################
+# 
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#endDate
 
-#################################################################
-#    Data properties
-#################################################################
+:endDate a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty ;
+	rdfs:domain :Event ;
+	rdfs:range xsd:dateTime .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#imageLink
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#endDate
-environmental-events:endDate rdf:type owl:DatatypeProperty ;
-                             rdfs:subPropertyOf owl:topDataProperty ;
-                             rdfs:domain environmental-events:Event ;
-                             rdfs:range xsd:dateTime .
+:imageLink a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty ;
+	rdfs:domain :Event ;
+	rdfs:range xsd:anyURI .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#latitude
 
+:latitude a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty ;
+	rdfs:range _:genid1 .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#geoJson
-environmental-events:geoJson rdf:type owl:DatatypeProperty ;
-                             rdfs:subPropertyOf owl:topDataProperty .
+_:genid1 a rdfs:Datatype ;
+	owl:onDatatype xsd:float ;
+	owl:withRestrictions _:genid4 .
 
+_:genid4 a rdf:List ;
+	rdf:first _:genid5 .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#imageLink
-environmental-events:imageLink rdf:type owl:DatatypeProperty ;
-                               rdfs:subPropertyOf owl:topDataProperty ;
-                               rdfs:domain environmental-events:Event ;
-                               rdfs:range xsd:anyURI .
+_:genid5 xsd:minInclusive "-90.0"^^xsd:float .
 
+_:genid4 rdf:rest _:genid2 .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#latitude
-environmental-events:latitude rdf:type owl:DatatypeProperty ;
-                              rdfs:subPropertyOf owl:topDataProperty ;
-                              rdfs:range [ rdf:type rdfs:Datatype ;
-                                           owl:onDatatype xsd:float ;
-                                           owl:withRestrictions ( [ xsd:minInclusive "-90.0"^^xsd:float
-                                                                  ]
-                                                                  [ xsd:maxInclusive "90.0"^^xsd:float
-                                                                  ]
-                                                                )
-                                         ] .
+_:genid2 a rdf:List ;
+	rdf:first _:genid3 .
 
+_:genid3 xsd:maxInclusive "90.0"^^xsd:float .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#longitude
-environmental-events:longitude rdf:type owl:DatatypeProperty ;
-                               rdfs:subPropertyOf owl:topDataProperty ;
-                               rdfs:range [ rdf:type rdfs:Datatype ;
-                                            owl:onDatatype xsd:float ;
-                                            owl:withRestrictions ( [ xsd:minInclusive "-180.0"^^xsd:float
-                                                                   ]
-                                                                   [ xsd:maxInclusive "180.0"^^xsd:float
-                                                                   ]
-                                                                 )
-                                          ] .
+_:genid2 rdf:rest rdf:nil .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#longitude
 
+:longitude a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty ;
+	rdfs:range _:genid6 .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#name
-environmental-events:name rdf:type owl:DatatypeProperty ;
-                          rdfs:subPropertyOf owl:topDataProperty .
+_:genid6 a rdfs:Datatype ;
+	owl:onDatatype xsd:float ;
+	owl:withRestrictions _:genid9 .
 
+_:genid9 a rdf:List ;
+	rdf:first _:genid10 .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#query
-environmental-events:query rdf:type owl:DatatypeProperty ;
-                           rdfs:subPropertyOf owl:topDataProperty ;
-                           rdfs:domain environmental-events:Event ;
-                           rdfs:range xsd:string .
+_:genid10 xsd:minInclusive "-180.0"^^xsd:float .
 
+_:genid9 rdf:rest _:genid7 .
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#startDate
-environmental-events:startDate rdf:type owl:DatatypeProperty ;
-                               rdfs:domain environmental-events:Event ;
-                               rdfs:range xsd:dateTime .
+_:genid7 a rdf:List ;
+	rdf:first _:genid8 .
 
+_:genid8 xsd:maxInclusive "180.0"^^xsd:float .
 
-###  http://www.w3.org/2002/07/owl#topDataProperty
-owl:topDataProperty rdfs:domain environmental-events:Event ;
-                    rdfs:range xsd:string .
+_:genid7 rdf:rest rdf:nil .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#name
 
+:name a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#place
 
-#################################################################
-#    Classes
-#################################################################
+:place a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty ;
+	rdfs:domain :Event ;
+	rdfs:range xsd:string .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#query
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Agglomeration
-environmental-events:Agglomeration rdf:type owl:Class ;
-                                   rdfs:subClassOf environmental-events:Urbanization .
+:query a owl:DatatypeProperty ;
+	rdfs:subPropertyOf owl:topDataProperty ;
+	rdfs:domain :Event ;
+	rdfs:range xsd:string .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#startDate
 
+:startDate a owl:DatatypeProperty ;
+	rdfs:domain :Event ;
+	rdfs:range xsd:dateTime .
+# 
+# http://www.w3.org/2002/07/owl#topDataProperty
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Algorithm
-environmental-events:Algorithm rdf:type owl:Class .
+owl:topDataProperty rdfs:domain :Event ;
+	rdfs:range xsd:string .
+# 
+# 
+# 
+# #################################################################
+# #
+# #    Classes
+# #
+# #################################################################
+# 
+# 
+# http://dbpedia.org/ontology/Place
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Agglomeration
 
+:Agglomeration a owl:Class ;
+	rdfs:subClassOf :Urbanization .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Algorithm
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#City
-environmental-events:City rdf:type owl:Class ;
-                          rdfs:subClassOf environmental-events:Urbanization .
+:Algorithm a owl:Class .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#City
 
+:City a owl:Class ;
+	rdfs:subClassOf :Urbanization .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Deforestation
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Deforestation
-environmental-events:Deforestation rdf:type owl:Class ;
-                                   rdfs:subClassOf environmental-events:Event ;
-                                   owl:disjointWith environmental-events:Urbanization .
+:Deforestation a owl:Class ;
+	rdfs:subClassOf :Event ;
+	owl:disjointWith :Urbanization .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Event
 
+:Event a owl:Class .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Urbanization
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Event
-environmental-events:Event rdf:type owl:Class .
+:Urbanization a owl:Class ;
+	rdfs:subClassOf :Event .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Village
 
+:Village a owl:Class ;
+	rdfs:subClassOf :Urbanization .
+# 
+# 
+# 
+# #################################################################
+# #
+# #    Individuals
+# #
+# #################################################################
+# 
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Photosynthesis
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Urbanization
-environmental-events:Urbanization rdf:type owl:Class ;
-                                  rdfs:subClassOf environmental-events:Event .
+:Photosynthesis a owl:NamedIndividual , :Algorithm .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#RGB
 
+:RGB a owl:NamedIndividual , :Algorithm .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Thermal
 
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Village
-environmental-events:Village rdf:type owl:Class ;
-                             rdfs:subClassOf environmental-events:Urbanization .
+:Thermal a owl:NamedIndividual , :Algorithm .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#amazonian1
 
-
-#################################################################
-#    Individuals
-#################################################################
-
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Photosynthesis
-environmental-events:Photosynthesis rdf:type owl:NamedIndividual ,
-                                             environmental-events:Algorithm .
-
-
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#RGB
-environmental-events:RGB rdf:type owl:NamedIndividual ,
-                                  environmental-events:Algorithm .
-
-
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Thermal
-environmental-events:Thermal rdf:type owl:NamedIndividual ,
-                                      environmental-events:Algorithm .
-
-
-###  http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#amazonian1
-environmental-events:amazonian1 rdf:type owl:NamedIndividual ,
-                                         environmental-events:Deforestation ;
-                                environmental-events:algorithm environmental-events:Photosynthesis ;
-                                environmental-events:endDate "2016-10-01T13:00:00"^^xsd:dateTime ;
-                                environmental-events:geoJson """{
-  \"type\": \"Feature\",
-  \"geometry\": {
-    \"type\": \"Point\",
-    \"coordinates\": [125.6, 10.1]
-  },
-  \"properties\": {
-    \"name\": \"Dinagat Islands\"
-  }
-}"""^^xsd:string ;
-                                environmental-events:imageLink "http://funkysayu.fr/path/to/image1.png"^^xsd:anyURI ,
-                                                               "http://funkysayu.fr/path/to/image2.png"^^xsd:anyURI ;
-                                environmental-events:startDate "2001-10-01T13:00:00"^^xsd:dateTime .
-
-
-###  Generated by the OWL API (version 4.2.6.20160910-2108) https://github.com/owlcs/owlapi
+:amazonian1 a owl:NamedIndividual , :Deforestation ;
+	:algorithm :Photosynthesis ;
+	:endDate "2016-10-01T13:00:00"^^xsd:dateTime ;
+	:imageLink "http://funkysayu.fr/path/to/image1.png"^^xsd:anyURI , "http://funkysayu.fr/path/to/image2.png"^^xsd:anyURI ;
+	:place "Amazonian forest"^^xsd:string ;
+	:startDate "2001-10-01T13:00:00"^^xsd:dateTime .
+# 
+# Generated by the OWL API (version 4.2.6.20160910-2108) https://github.com/owlcs/owlapi

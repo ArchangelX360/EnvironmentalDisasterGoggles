@@ -11,6 +11,5 @@ POST        /process/start/:id                controllers.SchedulerController.st
 POST        /process/kill/:id                 controllers.SchedulerController.cancelProcessing(id: String)
 
 # TODO: to remove
-GET         /sparql/fetch/geojson             controllers.SparQLController.fetchAllGeoJSON
 GET         /sparql/fetch/eventClasses        controllers.SparQLController.fetchEventClasses
 POST        /sparql/insert/event              controllers.SparQLController.insertEvent
