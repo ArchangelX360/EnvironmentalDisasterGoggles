@@ -29,15 +29,22 @@ object SparQLActor {
     * @param algorithm  algorithm used as enve:Algorithm
     * @param startDate  start date string formatted as xsd:DateTime
     * @param endDate    end date string formatted as xsd:DateTime
+    * @param place      place where the event took place
     * @param imageLinks array of image link formatted as xsd:anyURI
-    * @param geoJson    geoJson of the area
     */
-  case class InsertEvent(eventClass: String, algorithm: String,
-                         startDate: String, endDate: String,
-                         place: String,
-                         imageLinks: Array[String])
+  case class OntologyEvent(eventClass: String, algorithm: String,
+                           startDate: String, endDate: String,
+                           place: String,
+                           imageLinks: Array[String])
 
   case class FetchEventClasses()
+
+  /**
+    * @param startDate start date string formatted as xsd:DateTime
+    * @param endDate   end date string formatted as xsd:DateTime
+    * @param place     place where the event took place
+    */
+  case class CacheParameters(startDate: String, endDate: String, eventClass: String, place: String)
 
   case class SparQLFetchResponse(response: Array[String])
 
@@ -64,7 +71,8 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     */
   override def receive: Receive = {
     case _: FetchEventClasses => fetchEventClasses()
-    case message: InsertEvent => insertEvent(message)
+    case parameters: CacheParameters => fetchCacheContent(parameters)
+    case event: OntologyEvent => insertEvent(event)
     case _ => throw new InvalidParameterException()
   }
 
@@ -74,14 +82,41 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     */
   def fetchEventClasses(): Unit = {
     val eventClassesRequest = envePrefix + rdfsPrefix +
-      "SELECT ?subject ?predicate ?object WHERE {?subject rdfs:subClassOf enve:Event}"
+      "SELECT ?eventClassName WHERE {?eventClassName rdfs:subClassOf enve:Event}"
 
     def parseEventClasses(response: WSResponse): Array[String] = {
       val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
-      resJson.map(x => (x \ "subject" \ "value").as[String].split("#")(1))
+      resJson.map(x => (x \ "eventClassName" \ "value").as[String].split("#")(1))
     }
 
     sendResponse(executeQuery(eventClassesRequest), parseEventClasses)
+  }
+
+
+  /**
+    * Fetches, if they exist, cached results corresponding to the specified parameters
+    *
+    * @param parameters event parameters
+    */
+  def fetchCacheContent(parameters: CacheParameters): Unit = {
+
+    var request = envePrefix + xsdPrefix
+    request += "SELECT ?uri\n"
+    request += "WHERE {\n"
+    request += "    ?event enve:imageLink ?uri .\n"
+    request += "    ?event enve:place \"" + parameters.place + "\" .\n"
+    request += "    ?event a enve:" + parameters.eventClass + " .\n"
+    request += "    ?event enve:startDate \"" + parameters.startDate + "\"^^xsd:dateTime .\n"
+    request += "    ?event enve:endDate \"" + parameters.endDate + "\"^^xsd:dateTime\n"
+    request += "}\n"
+
+    def parseCachedURIs(response: WSResponse): Array[String] = {
+      val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
+      resJson.map(x => (x \ "uri" \ "value").as[String])
+    }
+
+    sendResponse(executeQuery(request), parseCachedURIs)
+
   }
 
   /**
@@ -89,7 +124,7 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     *
     * @param event event object containing event parameters
     */
-  def insertEvent(event: InsertEvent): Unit = {
+  def insertEvent(event: OntologyEvent): Unit = {
     // FIXME: security flaw, this should be fixed using Jena Java library as shown here to create queries: https://morelab.deusto.es/code_injection/
 
     var insertRequest = envePrefix + rdfsPrefix + rdfPrefix + xsdPrefix +
@@ -99,8 +134,8 @@ class SparQLActor(ws: WSClient, serverUrl: String,
     insertRequest += "enve:startDate \"" + event.startDate + "\"^^xsd:dateTime ;\n"
     insertRequest += "enve:endDate \"" + event.endDate + "\"^^xsd:dateTime ;\n"
     insertRequest += "enve:algorithm enve:" + event.algorithm + " ;\n"
-    insertRequest += "enve:location \"" + event.place + "\"^^xsd:string ;\n"
-    // TODO(archangel): use dbo:Place type instead of xsd:string
+    insertRequest += "enve:place \"" + event.place + "\" ;\n"
+    // TODO(archangel): use dbo:Place and enve:location edge instead of enve:place and string
 
     event.imageLinks.foreach(link => {
       insertRequest += "enve:imageLink \"" + link + "\"^^xsd:anyURI ;\n"
