@@ -23,7 +23,7 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
   /**
     * Handle all the search requests (including NLP processing)
     */
-  private val searchActor = system.actorOf(SearchActor.props(schedulerService.monitoringActor), "search-actor")
+  private val searchActor = system.actorOf(SearchActor.props(schedulerService), "search-actor")
 
   /**
     * Do no send a response after this delay, the processing is not canceled anyway
