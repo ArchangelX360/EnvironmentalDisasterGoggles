@@ -1,6 +1,5 @@
 package modules.computation
 
-import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
@@ -64,22 +63,6 @@ case class Cluster(var pixels: List[Pixel]) {
   }
 
   /**
-    * Utility function to check if pixels are contained in the cluster.
-    *
-    * @param pixels List of pixels
-    * @return true if all pixels are contained in the cluster
-    */
-  @tailrec
-  private def containsPixels(pixels: List[Pixel]): Boolean = pixels match {
-    case Nil => true
-    case pixel::tail =>
-      if (this.pixels.contains(pixel))
-        containsPixels(tail)
-      else
-        false
-  }
-
-  /**
     * Compare two clusters and ensure they are equals.
     *
     * @param obj element to compare
@@ -87,7 +70,7 @@ case class Cluster(var pixels: List[Pixel]) {
     */
   override def equals(obj: scala.Any): Boolean = obj match {
     case cluster: Cluster =>
-      cluster.size == size && containsPixels(cluster.pixels)
+      cluster.size == size && cluster.pixels.forall(pixels contains _)
     case _ => false
   }
 

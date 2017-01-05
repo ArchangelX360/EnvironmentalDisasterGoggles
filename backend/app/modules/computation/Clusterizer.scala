@@ -67,27 +67,22 @@ class Clusterizer(imageFile: File) {
     * Each iteration merges one or multiple clusters with minimal distance
     * between them.
     *
-    * @param current Current pixel to analyze
-    * @param accumulator Accumulated result, used to tail recursion.
+    * TODO(funkysayu) Adapt the code to move to a List instead of ListBuffer
+    *
     * @return The list of initial clusters, extracted from the image.
     */
-  @tailrec
-  private def generateClusters(current: Int = 0,
-                               accumulator: ListBuffer[Cluster]
-                                          = ListBuffer[Cluster]()
-                              ): ListBuffer[Cluster] = {
-    if (current >= this.height * this.width)
-      return accumulator
+  private def generateClusters(): ListBuffer[Cluster] =
+    (0 until this.height * this.width).foldLeft(List[Cluster]())(
+      (result, current) => {
+        val x = current / this.height
+        val y = current % this.height
+        val pixel = Pixel(x, y, this.image.getRGB(x, y))
 
-    val x = current / this.height
-    val y = current % this.height
-    val pixel = Pixel(x, y, this.image.getRGB(x, y))
-
-    if (matchTreshold(pixel))
-      accumulator.append(Cluster(List[Pixel](pixel)))
-
-    generateClusters(current + 1, accumulator)
-  }
+        if (matchTreshold(pixel))
+          Cluster(List[Pixel](pixel)) :: result
+        else
+          result
+      }).to[ListBuffer]
 
   var clusters: ListBuffer[Cluster] = generateClusters()
 
@@ -125,77 +120,34 @@ class Clusterizer(imageFile: File) {
     * @return the list of merge operations to do.
     */
   private def createMergeOperations(): List[(Cluster, Cluster)] = {
-    var minimumDistance = Double.PositiveInfinity
 
     /**
-      * Modify the list of merge operations depending of two clusters.
+      * Function utility calculating rounded up distance between two clusters
       *
-      * Overwrite the current accumulator if the two clusters have a lower
-      * distance ; append the two clusters if the distance is equal to the other
-      * ones
-      *
-      * @param first first cluster to compare
-      * @param second second cluster to compare
-      * @param accumulator list of merge operations to do
-      * @return the (eventually modified) list of merge operations.
+      * @param mergeOperation tuple of two clusters on which we will evaluate
+      *                       distance
+      * @return rounded up distance between the both clusters
       */
-    def generateAccumulator(first: Cluster,
-                            second: Cluster,
-                            accumulator: List[(Cluster, Cluster)]
-                           ): List[(Cluster, Cluster)] = {
-      val distance = first.distance(second).round
+    def ceiledDistance(mergeOperation: (Cluster, Cluster)): Double =
+      Math.ceil(mergeOperation._1.distance(mergeOperation._2))
 
-      if (distance < minimumDistance) {
-        minimumDistance = distance
-        List[(Cluster, Cluster)]((first, second))
-      } else if (distance == minimumDistance)
-        (first, second) :: accumulator
+    // Create combination iterator and convert it to merge operation
+    val combined = clusters.combinations(2).map(element =>
+      (element.head, element(1)))
+
+    combined.foldLeft(List(combined.next()))((result, current) => {
+      // Note: distances are cached, so even if it appears we are calculating
+      // them over and over, we don't.
+      val headDistance = ceiledDistance(result.head)
+      val currentDistance = ceiledDistance(current)
+
+      if (headDistance > currentDistance)
+        List[(Cluster, Cluster)](current)
+      else if (headDistance == currentDistance)
+        current :: result
       else
-        accumulator
-    }
-
-    /**
-      * Finds the closest clusters.
-      *
-      * This function evaluate distances from a cluster to other clusters, to
-      * select the closest ones. Rounded distances must be lower than the
-      * minimum distance defined in the above scope.
-      *
-      * @param cluster current cluster to evaluate.
-      * @param remainingClusters list of remaining clusters to evaluate.
-      * @param accumulator list of closest clusters, returned at the end.
-      * @return The list of closest clusters.
-      */
-    @tailrec
-    def closestCluster(cluster: Cluster,
-                       remainingClusters: ListBuffer[Cluster],
-                       accumulator: List[(Cluster, Cluster)]
-                      ): List[(Cluster, Cluster)] = {
-      if (remainingClusters.isEmpty)
-        return accumulator
-      closestCluster(cluster, remainingClusters.tail, generateAccumulator(
-        cluster, remainingClusters.head, accumulator))
-    }
-
-    /**
-      * Generates the list of closest clusters in the current cluster list.
-      *
-      * @param clusters list of clusters to evaluate.
-      * @param accumulator list of closest clusters, returned at the end.
-      * @return The list of closest clusters.
-      */
-    @tailrec
-    def generator(clusters: ListBuffer[Cluster],
-                  accumulator: List[(Cluster, Cluster)]
-                 ): List[(Cluster, Cluster)] = {
-      if (clusters.isEmpty)
-        return accumulator
-
-      generator(clusters.tail, closestCluster(clusters.head, clusters.tail,
-        accumulator))
-    }
-
-    generator(this.clusters, List[(Cluster, Cluster)]())
+        result
+    })
   }
 
   /**
