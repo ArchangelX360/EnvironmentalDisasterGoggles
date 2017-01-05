@@ -10,7 +10,7 @@ import threading
 from collections import deque
 from datetime import datetime
 
-from imagefetcher.utils import Error
+from utils import Error
 
 # We cannot use a flag here, because of how the application is designed.
 DEFAULT_QUERY_PER_SECONDS = 3

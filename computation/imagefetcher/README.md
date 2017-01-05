@@ -3,38 +3,75 @@
 This directory contains a module helping us to fetch data from the Google Earth
 API, with all its requirements.
 
-## Installation
+## Server Installation
 
-In order to install this module, please run the following:
+In order to install the server, you need to have a working docker installation.
+Please follow [the official documentation][docker install] if you do not have
+any docker engine installed on your server. To check if a docker engine exists,
+run the following command:
 
-    python2 setup.py install --user
+    sudo docker run hello-world
 
-Once everything is installed, you need to initialize your credentials:
+Once you have a working environment, you can continue with the following steps
 
-    python2 -c "import ee; ee.Initialize()"
+### Requirement: register your Earth Engine API token
 
-If everything works correctly, the following snippet should work:
+In order to run this server, you must own an Earth Engine API token. You can
+ask for an access on their [official website][earth engine]. **This is a
+requirement to run our server.**
 
-```python
-import ee
+#### Create a token
 
-# Initialize the Earth Engine object, using the authentication credentials.
-ee.Initialize()
+If you never used the Python Earth Engine API, you must first download the
+required packages to get a token:
 
-# Print the information for an image asset.
-image = ee.Image('srtm90_v4')
-print(image.getInfo())
-```
+    sudo apt-get update
+    sudo apt-get install python-dev python-pip
+    pip install --user google-api-python-client pyCrypto earthengine-api
 
-**Important note**: whenever an update is done on the code, you may need to
-re-run the installation.
+Once you have all those packages installed, you can then authenticate.
 
-## Usage
+    ~/.local/bin/earthengine authenticate
 
-Once you installed the module, you can run it with the following command:
+Your token is stored in `~/.config/earthengine/credentials`.
 
-    python2 -m imagefetcher [options...]
+#### Give your token to the server
 
-You can also run tests if needed:
+To register your Earth Engine API token, you must simply copy the credentials
+in this directory, as following:
 
-    python2 -m imagefetcher.tests
+    cp ~/.config/earthengine/credentials earthengine_token.json
+
+You are now ready to build the Docker image.
+
+### Build the docker image and run the docker image
+
+Since we use several python packages that might require compilation, you first
+need to build the docker image:
+
+    sudo docker build -t imagefetcher .
+
+Once the docker image is built, you can run the server by using the following command:
+
+    sudo docker run -p 5000:5000 imagefetcher
+
+### Running the examples
+
+We provided usage examples of Earth Engine API, **which are not a requirement
+for running our application**. If you want to run them, you should first install
+several modules as following:
+
+    sudo apt-get update
+    sudo apt-get install python-dev python-pip
+    pip install --user google-api-python-client pyCrypto earthengine-api
+
+If you never used the earth engine API, you should also initialize it by running
+the following command:
+
+    ~/.local/bin/earthengine authenticate
+
+You can then run any examples like this:
+
+    python2 examples/colored.py
+
+[docker install]: https://docs.docker.com/engine/installation/linux/

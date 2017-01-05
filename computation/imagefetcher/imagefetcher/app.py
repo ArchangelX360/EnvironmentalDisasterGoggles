@@ -26,11 +26,11 @@ from flask import Flask
 from flask import jsonify
 
 from fetcher import ImageFetcher
-from imagefetcher.utils import Error
-from imagefetcher.utils import Parser
-from imagefetcher.utils import get_param
-from imagefetcher.utils import get_geometry
-from imagefetcher.utils import scale_from_geometry
+from utils import Error
+from utils import Parser
+from utils import get_param
+from utils import get_geometry
+from utils import scale_from_geometry
 
 
 app = Flask(__name__)
