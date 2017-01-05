@@ -12,4 +12,5 @@ POST        /process/kill/:id                 controllers.SchedulerController.ca
 
 # TODO: to remove
 GET         /sparql/fetch/eventClasses        controllers.SparQLController.fetchEventClasses
+POST        /sparql/fetch/cache               controllers.SparQLController.fetchCache
 POST        /sparql/insert/event              controllers.SparQLController.insertEvent

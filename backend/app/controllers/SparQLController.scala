@@ -40,9 +40,23 @@ class SparQLController @Inject()(system: ActorSystem,
     }
   }
 
+  def fetchCache = Action.async { request =>
+    val body = request.body.asJson.get
+    val response = fetcherActor ? CacheParameters(
+      startDate = (body \ "startDate").as[String],
+      endDate = (body \ "endDate").as[String],
+      eventClass = (body \ "eventClass").as[String],
+      place = (body \ "place").as[String]
+    )
+    response.map {
+      case SparQLFetchResponse(stringArray) => Ok(stringArray.mkString(","))
+      case error => InternalServerError(error.toString)
+    }
+  }
+
   def insertEvent = Action.async { request =>
     val body = request.body.asJson.get
-    val response = fetcherActor ? InsertEvent(
+    val response = fetcherActor ? OntologyEvent(
       startDate = (body \ "startDate").as[String],
       endDate = (body \ "endDate").as[String],
       eventClass = (body \ "eventClass").as[String],
