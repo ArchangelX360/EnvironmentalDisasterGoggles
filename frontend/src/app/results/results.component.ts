@@ -2,7 +2,7 @@ import {Component, OnInit} from "@angular/core";
 import {Query} from "../models/query";
 import {ResultsService} from '../services/results.service';
 import {ActivatedRoute, Params} from "@angular/router";
-import { MdSnackBar } from '@angular/material';
+import { MdSnackBar, MdSlider } from '@angular/material';
 
 @Component({
   selector: 'app-results',
@@ -12,6 +12,7 @@ export class ResultsComponent implements OnInit {
 
   private query: Query;
   private queryID: string;
+  private imgOpacity: number;
 
   constructor(private route: ActivatedRoute,
               private resultsService: ResultsService,

@@ -7,6 +7,19 @@
 
   <md-tab-group>
     <md-tab label="Results">
+      <section class="image-box">
+        <img src="//localhost:9000/images/{{query.metadata.rgb}}">
+        <img src="//localhost:9000/images/{{query.metadata.forest}}" class="forest-img" [style.opacity]="imgOpacity">
+      </section>
+      <section class="legend-box">
+        <h3>Maps Legend</h3>
+        <h4>Photosynthesis Map Opacity</h4>
+        <md-slider min="0" max="1" step="0.01" value="0" [(ngModel)]="imgOpacity"></md-slider>
+        <h4>High Photosynthesis Delta <br> (Reforestation)</h4>
+        <div class="green-legend"></div>
+        <h4>Low Photosynthesis Delta <br> (Deforestation)</h4>
+        <div class="red-legend"></div>
+      </section>
     </md-tab>
 
     <md-tab label="NLP Interpretation">
