@@ -32,14 +32,6 @@ class SparQLController @Inject()(system: ActorSystem,
     configuration.underlying.getString("pfs.servers.fusekiServerUrl"),
     configuration.underlying.getString("pfs.servers.fusekiDBName")))
 
-  def fetchAllGeoJSON = Action.async { _ =>
-    val response = fetcherActor ? FetchAllGeoJSON()
-    response.map {
-      case SparQLFetchResponse(stringArray) => Ok(stringArray.mkString(","))
-      case error => InternalServerError(error.toString)
-    }
-  }
-
   def fetchEventClasses = Action.async { _ =>
     val response = fetcherActor ? FetchEventClasses()
     response.map {
@@ -55,8 +47,8 @@ class SparQLController @Inject()(system: ActorSystem,
       endDate = (body \ "endDate").as[String],
       eventClass = (body \ "eventClass").as[String],
       algorithm = (body \ "algorithm").as[String],
-      imageLinks = (body \ "imageLinks").as[Array[String]],
-      geoJson = (body \ "geoJson").as[JsValue]
+      place = (body \ "place").as[String],
+      imageLinks = (body \ "imageLinks").as[Array[String]]
     )
 
     response.map {
