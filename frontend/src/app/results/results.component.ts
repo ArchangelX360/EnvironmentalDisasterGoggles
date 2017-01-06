@@ -11,7 +11,6 @@ import { MdSnackBar, MdSlider } from '@angular/material';
 export class ResultsComponent implements OnInit {
 
   private query: Query;
-  private queryID: string;
   private imgOpacity: number;
 
   constructor(private route: ActivatedRoute,
@@ -23,16 +22,15 @@ export class ResultsComponent implements OnInit {
     this.route.params
       .map((params: Params) => params['id'])
       .subscribe(id => {
-        this.queryID = id;
-        this.getQueryResult();
+        this.getQueryResult(id);
       })
   }
 
   /**
    * Get Query in order to display search result
    */
-  getQueryResult() {
-    this.resultsService.getQuery(this.queryID).subscribe(
+  getQueryResult(queryID: string) {
+    this.resultsService.getQuery(queryID).subscribe(
       response => this.query = response,
       error => this.errorHandler(error)
     );
