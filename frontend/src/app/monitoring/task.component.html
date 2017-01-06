@@ -7,7 +7,13 @@
   </span>
   <h4 md-line>{{task.name}}</h4>
   <pre md-line>
-{{task.metadata | json}}
+    <span *ngIf="task.metadata.place"><b>Place:</b> {{task.metadata.place}} |</span>
+    <span *ngIf="task.metadata.date"><b>Date:</b> {{task.metadata.date}} |</span>
+    <span *ngIf="task.metadata.start"><b>Start:</b> {{task.metadata.start}} |</span>
+    <span *ngIf="task.metadata.stop"><b>Stop:</b> {{task.metadata.stop}} |</span>
+    <span *ngIf="task.metadata.url"><b>Image:</b> <a href="{{task.metadata.url}}">Download ZIP</a> |</span>
+    <span *ngIf="task.metadata.file"><b>File:</b> {{task.metadata.file}} |</span>
+    <span *ngIf="task.metadata.outputFolder"><b>OutputFolder:</b> /{{task.metadata.outputFolder}} |</span>
   </pre>
   <p md-line>
     <md-progress-bar color="primary" mode="determinate" [value]="task.progress"></md-progress-bar>
