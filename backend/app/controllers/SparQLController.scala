@@ -7,7 +7,6 @@ import akka.pattern.ask
 import akka.util.Timeout
 import modules.sparql.SparQLActor
 import modules.sparql.SparQLActor._
-import play.api.libs.json.{JsValue}
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
@@ -35,7 +34,7 @@ class SparQLController @Inject()(system: ActorSystem,
   def fetchEventClasses = Action.async { _ =>
     val response = fetcherActor ? FetchEventClasses()
     response.map {
-      case SparQLFetchResponse(stringArray) => Ok(stringArray.mkString(","))
+      case SparQLEventClassesResponse(stringArray) => Ok(stringArray.mkString(","))
       case error => InternalServerError(error.toString)
     }
   }
@@ -49,7 +48,7 @@ class SparQLController @Inject()(system: ActorSystem,
       place = (body \ "place").as[String]
     )
     response.map {
-      case SparQLFetchResponse(stringArray) => Ok(stringArray.mkString(","))
+      case SparQLCachedResponse(stringArray) => Ok(stringArray.mkString(","))
       case error => InternalServerError(error.toString)
     }
   }
@@ -64,7 +63,6 @@ class SparQLController @Inject()(system: ActorSystem,
       place = (body \ "place").as[String],
       imageLinks = (body \ "imageLinks").as[Array[String]]
     )
-
     response.map {
       case SparQLInsertResponse(message) => Ok(message)
       case error => InternalServerError(error.toString)
