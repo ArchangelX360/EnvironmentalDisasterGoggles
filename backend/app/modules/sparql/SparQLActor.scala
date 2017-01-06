@@ -3,7 +3,7 @@ package modules.sparql
 import java.security.InvalidParameterException
 
 import akka.actor.{Actor, Props}
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsObject}
 import play.api.libs.ws.{WSClient, WSResponse}
 import scala.concurrent.Future
 import scala.util.Random
@@ -47,8 +47,19 @@ object SparQLActor {
     */
   case class CacheParameters(startDate: String, endDate: String, eventClass: String, place: String)
 
-  case class SparQLFetchResponse(response: Array[String])
+  /**
+    * @param uris array of uri strings of already processed images for the given query
+    */
+  case class SparQLCachedResponse(uris: Array[String])
 
+  /**
+    * @param classes array of event classes string
+    */
+  case class SparQLEventClassesResponse(classes: Array[String])
+
+  /**
+    * @param message response status or error message
+    */
   case class SparQLInsertResponse(message: String)
 
 }
@@ -78,90 +89,6 @@ class SparQLActor(ws: WSClient, serverUrl: String,
   }
 
   /**
-    * Fetches all event classes of the fuseki server's ontology
-    * Example: Deforestation, Urbanization
-    */
-  def fetchEventClasses(): Unit = {
-    val eventClassesRequest = envePrefix + rdfsPrefix +
-      "SELECT ?eventClassName WHERE {?eventClassName rdfs:subClassOf enve:Event}"
-
-    def parseEventClasses(response: WSResponse): Array[String] = {
-      val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
-      resJson.map(x => (x \ "eventClassName" \ "value").as[String].split("#")(1))
-    }
-
-    sendResponse(executeQuery(eventClassesRequest), parseEventClasses)
-  }
-
-
-  /**
-    * Fetches, if they exist, cached results corresponding to the specified parameters
-    *
-    * @param parameters event parameters
-    */
-  def fetchCacheContent(parameters: CacheParameters): Unit = {
-
-    var request = envePrefix + xsdPrefix
-    request += "SELECT ?uri\n"
-    request += "WHERE {\n"
-    request += "    ?event enve:imageLink ?uri .\n"
-    request += "    ?event enve:place \"" + parameters.place + "\" .\n"
-    request += "    ?event a enve:" + parameters.eventClass + " .\n"
-    request += "    ?event enve:startDate \"" + parameters.startDate + "\"^^xsd:dateTime .\n"
-    request += "    ?event enve:endDate \"" + parameters.endDate + "\"^^xsd:dateTime\n"
-    request += "}\n"
-
-    def parseCachedURIs(response: WSResponse): Array[String] = {
-      val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
-      resJson.map(x => (x \ "uri" \ "value").as[String])
-    }
-
-    sendResponse(executeQuery(request), parseCachedURIs)
-
-  }
-
-  /**
-    * Inserts an event in the fuseki server's ontology
-    *
-    * @param event event object containing event parameters
-    */
-  def insertEvent(event: OntologyEvent): Unit = {
-    // FIXME: security flaw, this should be fixed using Jena Java library as shown here to create queries: https://morelab.deusto.es/code_injection/
-
-    var insertRequest = envePrefix + rdfsPrefix + rdfPrefix + xsdPrefix +
-      "INSERT DATA\n" +
-      "{\n"
-    insertRequest += "enve:event" + System.currentTimeMillis() + Random.nextInt() + " rdf:type enve:" + event.eventClass + " ;\n"
-    insertRequest += "enve:startDate \"" + event.startDate + "\"^^xsd:dateTime ;\n"
-    insertRequest += "enve:endDate \"" + event.endDate + "\"^^xsd:dateTime ;\n"
-    insertRequest += "enve:algorithm enve:" + event.algorithm + " ;\n"
-    insertRequest += "enve:place \"" + event.place + "\" ;\n"
-    // TODO(archangel): use dbo:Place and enve:location edge instead of enve:place and string
-
-    event.imageLinks.foreach(link => {
-      insertRequest += "enve:imageLink \"" + link + "\"^^xsd:anyURI ;\n"
-    })
-
-    insertRequest += "}"
-
-    val currentSender = sender
-
-    val params = Map("update" -> Seq(insertRequest))
-
-    val request = ws.url(serverUrl + "/" + databaseName + "/update")
-      .post(params)
-
-    request.map(response =>
-      if (response.status == 200) {
-        currentSender ! SparQLInsertResponse(response.statusText)
-      } else {
-        val error = (response.json \ "error").asOpt[String]
-        currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
-      }
-    )
-  }
-
-  /**
     * Executes a "query" SparQL request on the fuseki server using POST
     *
     * @param sparqlRequest the SparQL request we want to execute
@@ -173,20 +100,115 @@ class SparQLActor(ws: WSClient, serverUrl: String,
       .get()
 
   /**
-    * Parses and sends the response to the sender
+    * Parse event classes response
     *
-    * @param request the resquest response's future we executed
-    * @param parser  the response's parser
+    * @param response the fetching event classes query response
+    * @return an array of event classes
     */
-  def sendResponse(request: Future[WSResponse], parser: WSResponse => Array[String]) {
+  private def parseEventClasses(response: WSResponse): Array[String] = {
+    val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
+    resJson.map(x => (x \ "eventClassName" \ "value").as[String].split("#")(1))
+  }
+
+  /**
+    * Fetches all event classes of the fuseki server's ontology
+    * and returns an array of event classes to the sender
+    *
+    * Example: Array(Deforestation, Urbanization)
+    */
+  def fetchEventClasses(): Unit = {
+
+    val query = envePrefix + rdfsPrefix +
+      "SELECT ?eventClassName WHERE {?eventClassName rdfs:subClassOf enve:Event}"
+
     val currentSender = sender
+
+    executeQuery(query).map(response =>
+      if (response.status == 200) {
+        currentSender ! SparQLEventClassesResponse(parseEventClasses(response))
+      } else {
+        val error = (response.json \ "error").asOpt[String]
+        currentSender ! "An error occurred during event class query execution: " + error.getOrElse("no details")
+      }
+    )
+  }
+
+  /**
+    * Parse cache response
+    *
+    * @param response the fetching cachce query response
+    * @return an array of uris string
+    */
+  private def parseCachedURIs(response: WSResponse): Array[String] = {
+    val resJson = (response.json \ "results" \ "bindings").as[Array[JsObject]]
+    resJson.map(x => (x \ "uri" \ "value").as[String])
+  }
+
+  /**
+    * Fetches, if they exist, cached results corresponding to the specified parameters
+    * and returns an array of uris to the sender
+    *
+    * @param parameters event parameters
+    */
+  def fetchCacheContent(parameters: CacheParameters): Unit = {
+
+    var query = envePrefix + xsdPrefix +
+      "SELECT ?uri\n" +
+      "WHERE {\n" +
+      "    ?event enve:imageLink ?uri .\n" +
+      "    ?event enve:place \"" + parameters.place + "\" .\n" +
+      "    ?event a enve:" + parameters.eventClass + " .\n" +
+      "    ?event enve:startDate \"" + parameters.startDate + "\"^^xsd:dateTime .\n" +
+      "    ?event enve:endDate \"" + parameters.endDate + "\"^^xsd:dateTime\n" +
+      "}\n"
+
+    val currentSender = sender
+
+    executeQuery(query).map(response =>
+      if (response.status == 200) {
+        currentSender ! SparQLCachedResponse(parseCachedURIs(response))
+      } else {
+        val error = (response.json \ "error").asOpt[String]
+        currentSender ! "An error occurred during cache fetching: " + error.getOrElse("no details")
+      }
+    )
+  }
+
+  /**
+    * Inserts an event in the fuseki server's ontology
+    * and return response status to the sender
+    *
+    * @param event event object containing event parameters
+    */
+  def insertEvent(event: OntologyEvent): Unit = {
+    // FIXME: security flaw, this should be fixed using Jena Java library as shown here to create queries: https://morelab.deusto.es/code_injection/
+
+    var insertRequest = envePrefix + rdfsPrefix + rdfPrefix + xsdPrefix
+    insertRequest += "INSERT DATA\n"
+    insertRequest += "{\n"
+    insertRequest += "enve:event" + System.currentTimeMillis() + Random.nextInt() + " rdf:type enve:" + event.eventClass + " ;\n"
+    insertRequest += "enve:startDate \"" + event.startDate + "\"^^xsd:dateTime ;\n"
+    insertRequest += "enve:endDate \"" + event.endDate + "\"^^xsd:dateTime ;\n"
+    insertRequest += "enve:algorithm enve:" + event.algorithm + " ;\n"
+    insertRequest += "enve:place \"" + event.place + "\" ;\n"
+    // TODO(archangel): use dbo:Place and enve:location edge instead of enve:place and string
+    event.imageLinks.foreach(link => {
+      insertRequest += "enve:imageLink \"" + link + "\"^^xsd:anyURI ;\n"
+    })
+    insertRequest += "}"
+
+    val currentSender = sender
+
+    val params = Map("update" -> Seq(insertRequest))
+    val request = ws.url(serverUrl + "/" + databaseName + "/update")
+      .post(params)
 
     request.map(response =>
       if (response.status == 200) {
-        currentSender ! SparQLFetchResponse(parser(response))
+        currentSender ! SparQLInsertResponse(response.statusText)
       } else {
         val error = (response.json \ "error").asOpt[String]
-        currentSender ! "An error occurred during image fetching: " + error.getOrElse("no details")
+        currentSender ! "An error occurred during event insertion: " + error.getOrElse("no details")
       }
     )
   }
