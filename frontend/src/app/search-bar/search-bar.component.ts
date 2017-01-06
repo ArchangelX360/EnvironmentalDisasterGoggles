@@ -11,6 +11,7 @@ import {Query} from "../models/query";
 export class SearchBarComponent implements OnInit {
 
   private query: string;
+  private loadSpinner : boolean;
 
   dialogRef: MdDialogRef<SearchResultDialog>;
 
@@ -27,6 +28,7 @@ export class SearchBarComponent implements OnInit {
    * @param queryResponse result of the NLP interpretation
    */
   openDialog(queryResponse : Query) {
+    this.loadSpinner = false;
     this.dialogRef = this.dialog.open(SearchResultDialog);
 
     // Passing NLP interpretation as dialog parameter
@@ -53,6 +55,7 @@ export class SearchBarComponent implements OnInit {
 
   sendRequest() {
     if (this.query) {
+      this.loadSpinner = true;
       console.log("[INFO] Query sent: " + this.query);
       this.querySender.send(this.query).subscribe(
         response => this.openDialog(response),
@@ -62,6 +65,7 @@ export class SearchBarComponent implements OnInit {
   }
 
   errorHandler(error: any) {
+    this.loadSpinner = false;
     let logStr = '[ERROR] [QUERY SENDER SERVICE] ' + error;
     console.log(logStr);
     this.mdSnackBar.open(logStr, 'Close');
