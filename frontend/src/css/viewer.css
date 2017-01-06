@@ -49,6 +49,8 @@
 
 .query-task .md-list-item {
   height:55px!important;
+  margin-bottom: 13px!important;
+  width:70%;
 }
 
 .query-task md-icon {
@@ -60,6 +62,12 @@
 .query-task h4 {
   font-size: 15px;
   color: #444444;
+}
+
+.query-task pre {
+  padding: 12px 9px 7px!important;
+  font-size: 11px!important;
+  background: #ececec;
 }
 
 .query .green {
