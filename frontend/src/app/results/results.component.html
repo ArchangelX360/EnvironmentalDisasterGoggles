@@ -23,10 +23,32 @@
     </md-tab>
 
     <md-tab label="NLP Interpretation">
+      <table>
+        <tr>
+          <th>Place</th>
+          <td>{{query.details.place}}</td>
+        </tr>
+        <tr>
+          <th>From</th>
+          <td>{{query.details.from}}</td>
+        </tr>
+        <tr>
+          <th>To</th>
+          <td>{{query.details.to}}</td>
+        </tr>
+        <tr>
+          <th>Event</th>
+          <td>{{query.details.event}}</td>
+        </tr>
+      </table>
     </md-tab>
 
     <md-tab label="Query Steps">
-
+      <md-list>
+        <section class="query" style="margin-top:25px">
+          <section class="query-tasks"><app-task *ngFor="let task of query.tasks" [task]="task"></app-task></section>
+        </section>
+      </md-list>
     </md-tab>
   </md-tab-group>
 
