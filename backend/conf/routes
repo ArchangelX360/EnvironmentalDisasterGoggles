@@ -12,6 +12,8 @@ POST        /process/start/:id                controllers.SchedulerController.st
 
 POST        /process/kill/:id                 controllers.SchedulerController.cancelProcessing(id: String)
 
+GET         /*file        controllers.Assets.at(path="/public", file)
+
 # TODO: to remove
 GET         /sparql/fetch/eventClasses        controllers.SparQLController.fetchEventClasses
 POST        /sparql/fetch/cache               controllers.SparQLController.fetchCache
