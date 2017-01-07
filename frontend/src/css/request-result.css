@@ -9,7 +9,7 @@
   margin-bottom: 55px!important;
 }
 
-.request-result h4 {
+.request-result .legend-box h4 {
   font-size: 15px;
   color: #797979;
   margin-bottom: 10px;
@@ -63,4 +63,16 @@
   width:40px;
   height:25px;
   margin: 0 auto;
+}
+
+.request-result table {
+  border-collapse: collapse;
+}
+
+.request-result table, th, td {
+  border: 1px solid #bbbbbb;
+}
+
+.request-result table th {
+  background-color: #e4e4e4;
 }
