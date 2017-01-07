@@ -25,6 +25,10 @@ export class MonitoringComponent implements OnInit {
     // Initialization of Monitoring data
     this.getMonitoringData();
 
+    // Refreshing Monitoring data with {intervalValue} millisecond interval
+    this.intervalID = window.setInterval(() => {
+      this.getMonitoringData();
+    }, this.intervalValue);
   }
 
   ngOnDestroy() {
