@@ -1,20 +1,15 @@
-GET         /                                 controllers.Index.main
+POST        /search                        controllers.SearchController.search
 
-POST        /search                           controllers.SearchController.search
+GET         /images/:file                  controllers.SearchController.getImage(file: String)
 
-GET         /images/:file                     controllers.SearchController.getImage(file: String)
+GET         /monitoring/queries            controllers.SchedulerController.getProcesses
 
-GET         /monitoring/queries               controllers.SchedulerController.getProcesses
+GET         /monitoring/queries/:id        controllers.SchedulerController.getProcess(id: String)
 
-GET         /monitoring/queries/:id           controllers.SchedulerController.getProcess(id: String)
+POST        /process/start/:id             controllers.SchedulerController.startProcessing(id: String)
 
-POST        /process/start/:id                controllers.SchedulerController.startProcessing(id: String)
+POST        /process/kill/:id              controllers.SchedulerController.cancelProcessing(id: String)
 
-POST        /process/kill/:id                 controllers.SchedulerController.cancelProcessing(id: String)
+GET         /                              controllers.Assets.at(path="/public", file="index.html")
 
-GET         /*file        controllers.Assets.at(path="/public", file)
-
-# TODO: to remove
-GET         /sparql/fetch/eventClasses        controllers.SparQLController.fetchEventClasses
-POST        /sparql/fetch/cache               controllers.SparQLController.fetchCache
-POST        /sparql/insert/event              controllers.SparQLController.insertEvent
+GET         /*file                         controllers.Assets.at(path="/public", file)
