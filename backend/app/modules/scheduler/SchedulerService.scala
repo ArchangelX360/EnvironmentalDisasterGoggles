@@ -25,7 +25,7 @@ class SchedulerService @Inject() (system: ActorSystem, ws: WSClient, configurati
   /**
     * The scheduler actor manage the lifecycle of tasks within a query
     */
-  val schedulerActor: ActorRef = system.actorOf(SchedulerActor.props(processes, configuration, ws, monitoringActor))
+  val schedulerActor: ActorRef = system.actorOf(SchedulerActor.props(processes, configuration, ws, monitoringActor, this))
 
   /**
     * The sparQL actor handle all request to the Fuseki Server and abstract the ontology
