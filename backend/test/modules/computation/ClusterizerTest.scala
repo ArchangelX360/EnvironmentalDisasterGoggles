@@ -85,6 +85,12 @@ class ClusterizerTest extends PlaySpec {
       checkPixels(expectedPixels, clusterizer.clusters.map(_.pixels.head))
     }
 
+    "calculate correctly the percentage of deforestation" in {
+      val nbRedPixels = 18.0
+
+      clusterizer.percents mustBe (nbRedPixels / (20.0 * 20.0))
+    }
+
     "clusterize correctly the test image" in {
       val expectedClusters = ListBuffer[Cluster](
         Cluster(List[Pixel](

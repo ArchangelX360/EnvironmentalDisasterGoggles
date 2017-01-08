@@ -86,6 +86,9 @@ class Clusterizer(imageFile: File) {
 
   var clusters: ListBuffer[Cluster] = generateClusters()
 
+  /** Get the deforestation percents on the picture. */
+  val percents: Double = clusters.foldLeft(0)(_ + _.size).toDouble / (height * width)
+
   /**
     * Merges the clusters based on a list of merge operations.
     *
