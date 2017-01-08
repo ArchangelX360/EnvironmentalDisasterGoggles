@@ -62,7 +62,7 @@ def handle_error(error):
 @get_param("country", parser=str, default=None)
 @get_param('city', parser=str, default=None)
 @get_param("scale", parser=float, default=None)
-@get_param("delta", parser=Parser.date_delta, default=relativedelta(months=3))
+@get_param("delta", parser=Parser.date_delta, default=relativedelta(months=6))
 def rgb_handler(date, polygon, place, country, city, scale, delta):
     """Generates a RGB image of an area. Images are in PNG (in a zip).
 
