@@ -40,6 +40,11 @@ class ClusterizerTest extends PlaySpec {
     val clusterizer = new Clusterizer(
       application.getFile("test/resources/simpleForestDiff.png"))
 
+    "calculate correctly the percentage of deforestation" in {
+      val nbRedPixels = 18.0
+      clusterizer.percents mustBe (nbRedPixels / (20.0 * 20.0))
+    }
+
     "get the pixels matching the threshold" in {
       // The test sample contains 18 pixels matching the threshold
       val expectedPixels = List[Pixel](
