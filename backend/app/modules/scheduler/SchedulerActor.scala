@@ -9,9 +9,9 @@ import models.{Query, Task}
 import models.Query.Queries
 import modules.imagefetcher.{FetcherActor, ZipUtil}
 import modules.imagefetcher.FetcherActor._
-import modules.scheduler.MonitoringActor.{GetProcess, StartTask, UpdateProcess, UpdateTask}
+import modules.scheduler.MonitoringActor._
 import modules.scheduler.SchedulerActor.{CancelProcessing, StartProcessing}
-import modules.sparql.SparQLActor.OntologyEvent
+import modules.sparql.SparQLActor.{CacheParameters, OntologyEvent, SparQLCachedResponse}
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
@@ -80,36 +80,76 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
           throw new Exception("no details")
       }
 
-    // Send processing request to Google Earth Engine using the python server
-    val rgbUrl = details
-      .flatMap(details => fetcherActor.ask(FetchRGB(fullFmt.print(details.from), details.place, None, id)))
-      .mapTo[FetchResponse]
-      .map(response => response.url)
+    val cachedRGB = details.flatMap(query => schedulerService.sparQLActor.ask(CacheParameters(
+      query.event, "RGB", query.from.toString,
+      query.to.toString, query.place))
+      .mapTo[SparQLCachedResponse])
 
-    val forestDiffUrl = details
-      .flatMap(details => fetcherActor.ask(
-          FetchForestDiff(shortFmt.print(details.from), shortFmt.print(details.to), details.place, None, id)))
-      .mapTo[FetchResponse]
-      .map(response => response.url)
+    val cachedForestDiff = details.flatMap(query => schedulerService.sparQLActor.ask(CacheParameters(
+      query.event, "Photosynthesis", query.from.toString,
+      query.to.toString, query.place))
+      .mapTo[SparQLCachedResponse])
 
-    val rgbImage = downloadAndExtractImage(rgbUrl, id)
-    val forestDiffImage = downloadAndExtractImage(forestDiffUrl, id)
+    cachedRGB.zip(cachedForestDiff).map {
+      case (rgb, forest) =>
+        if (rgb.uris.isEmpty || forest.uris.isEmpty) {
+          // no cache
 
-    // TODO: Add forest diff processing here
+          // Send processing request to Google Earth Engine using the python server
+          val rgbUrl = details
+            .flatMap(details => fetcherActor.ask(FetchRGB(fullFmt.print(details.from), details.place, None, id)))
+            .mapTo[FetchResponse]
+            .map(response => response.url)
 
-    // TODO: Add ontology processing here
+          val forestDiffUrl = details
+            .flatMap(details => fetcherActor.ask(
+              FetchForestDiff(shortFmt.print(details.from), shortFmt.print(details.to), details.place, None, id)))
+            .mapTo[FetchResponse]
+            .map(response => response.url)
 
-    rgbImage.zip(forestDiffImage).zip(process).map {
-      case ((rgb, forest), query) =>
-        val metadata = Some(Map(
-          "rgb" -> rgb.map(_.getName).getOrElse(""),
-          "forest" -> forest.map(_.getName).getOrElse("")
-        ))
-        monitoring.ask(UpdateProcess(id, "terminated", metadata))
+          val rgbImage = downloadAndExtractImage(rgbUrl, id)
+          val forestDiffImage = downloadAndExtractImage(forestDiffUrl, id)
 
-        schedulerService.sparQLActor.ask(
-          OntologyEvent(query.details.get.event, "deforestation", query.details.get.from.toString,
-            query.details.get.to.toString, query.details.get.place, metadata.get.values.toArray))
+          // TODO: Add forest diff processing here
+
+          rgbImage.zip(forestDiffImage).zip(process).map {
+            case ((rgb, forest), query) =>
+              val metadata = Some(Map(
+                "rgb" -> rgb.map(_.getName).getOrElse(""),
+                "forest" -> forest.map(_.getName).getOrElse("")
+              ))
+              monitoring.ask(UpdateProcess(id, "terminated", metadata))
+
+              // Caching results
+              rgb.map(_.getName).foreach(filename =>
+                schedulerService.sparQLActor.ask(
+                  OntologyEvent(query.details.get.event, "RGB",
+                    query.details.get.from.toString,
+                    query.details.get.to.toString, query.details.get.place,
+                    Array(filename))
+                )
+              )
+              forest.map(_.getName).foreach(filename =>
+                schedulerService.sparQLActor.ask(
+                  OntologyEvent(query.details.get.event, "Photosynthesis",
+                    query.details.get.from.toString,
+                    query.details.get.to.toString, query.details.get.place,
+                    Array(filename))
+                )
+              )
+          }
+        } else {
+          val metadata = Some(Map(
+            "rgb" -> rgb.uris(0),
+            "forest" -> forest.uris(0)
+          ))
+
+          monitoring.ask(StartTask(id, "Using cached images"))
+            .mapTo[Task]
+            .map(task => monitoring.ask(UpdateTask(id, task.id, Some("terminated"), Some(100), None)))
+
+          monitoring.ask(UpdateProcess(id, "terminated", metadata))
+        }
     }
 
   }
@@ -124,7 +164,8 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
 
   /**
     * Download image generated by the Earth Engine as a zip file and extract it
-    * @param url Future url of the download link
+    *
+    * @param url     Future url of the download link
     * @param queryId Identifier of the query which triggered the download
     * @return The future optionally extracted file
     */
@@ -134,7 +175,7 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
       .flatMap(url => fetcherActor.ask(DownloadFile(url, queryId, outputFolder)))
       .mapTo[Downloaded]
 
-    val unzipTask = zip flatMap  (_ => monitoring.ask(StartTask(queryId, "Extracting image")).mapTo[Task])
+    val unzipTask = zip flatMap (_ => monitoring.ask(StartTask(queryId, "Extracting image")).mapTo[Task])
 
     // Extract image from the zip file
     val images = zip map (downloaded => ZipUtil.extractZip(downloaded.file, outputFolder = outputFolder))

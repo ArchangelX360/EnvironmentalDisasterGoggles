@@ -79,7 +79,7 @@ class SearchActor (schedulerService: SchedulerService) extends Actor {
       to = if (dates.isEmpty) Instant.now() else dates.tail.headOption.getOrElse(Instant.now()),
       event = "")
 
-    val fullDetails = event map (event => details.copy(event = event.getOrElse("no event found")))
+    val fullDetails = event map (event => details.copy(event = event.getOrElse("noEventParsed")))
 
     val schedulerResponse = fullDetails.flatMap( details =>
       monitoring ? StartProcess(message, author, Some(details))
