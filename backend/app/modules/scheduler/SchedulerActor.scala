@@ -11,6 +11,7 @@ import modules.imagefetcher.{FetcherActor, ZipUtil}
 import modules.imagefetcher.FetcherActor._
 import modules.scheduler.MonitoringActor.{GetProcess, StartTask, UpdateProcess, UpdateTask}
 import modules.scheduler.SchedulerActor.{CancelProcessing, StartProcessing}
+import modules.sparql.SparQLActor.OntologyEvent
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
@@ -22,8 +23,9 @@ object SchedulerActor {
   def props(processes: Queries,
             configuration: play.api.Configuration,
             ws: WSClient,
-            monitoring: ActorRef): Props =
-    Props(new SchedulerActor(processes, configuration, ws, monitoring))
+            monitoring: ActorRef,
+            schedulerService: SchedulerService): Props =
+    Props(new SchedulerActor(processes, configuration, ws, monitoring, schedulerService))
 
   //Message definitions
   case class StartProcessing(id: String)
@@ -35,7 +37,8 @@ object SchedulerActor {
 /**
   * This actor manage lifecycle of tasks and queries
   */
-class SchedulerActor(processes: Queries, configuration: play.api.Configuration, ws: WSClient, monitoring: ActorRef) extends Actor {
+class SchedulerActor(processes: Queries, configuration: play.api.Configuration, ws: WSClient, monitoring: ActorRef,
+                     schedulerService: SchedulerService) extends Actor {
 
   private val fetcherActor = context.actorOf(FetcherActor.props(ws, configuration.underlying.getString("pfs.servers.imageFetcherUrl"), monitoring))
 
@@ -98,10 +101,15 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
 
     rgbImage.zip(forestDiffImage).zip(process).map {
       case ((rgb, forest), query) =>
-        monitoring.ask(UpdateProcess(id, "terminated", Some(Map(
+        val metadata = Some(Map(
           "rgb" -> rgb.map(_.getName).getOrElse(""),
           "forest" -> forest.map(_.getName).getOrElse("")
-        ))))
+        ))
+        monitoring.ask(UpdateProcess(id, "terminated", metadata))
+
+        schedulerService.sparQLActor.ask(
+          OntologyEvent(query.details.get.event, "deforestation", query.details.get.from.toString,
+            query.details.get.to.toString, query.details.get.place, metadata.get.values.toArray))
     }
 
   }
