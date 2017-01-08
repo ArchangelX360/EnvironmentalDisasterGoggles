@@ -166,12 +166,14 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
 
     current_year = date.today().year
     try:
-        assert 2000 <= start < current_year, ("Start year must be within 2000 "
-            "and %s" % (current_year - 1))
+        assert 2000 <= start <= current_year, ("Start year must be within 2000 "
+            "and %s" % current_year)
         assert start < stop <= current_year, ("Stop year must be within start "
             "and %s" % current_year)
     except AssertionError as e:
         raise Error(str(e))
+
+    stop = min(current_year - 1, stop)
 
     url = fetcher.GetForestIndicesImage(start, stop, rectangle, scale)
     return jsonify(href=url, geojson=geometry.toGeoJSON(),
