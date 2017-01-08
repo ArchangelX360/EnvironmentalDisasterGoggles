@@ -174,6 +174,7 @@ def forest_diff_handler(polygon, place, country, city, start, stop, scale):
         raise Error(str(e))
 
     stop = min(current_year - 1, stop)
+    start = min(stop - 1, start)
 
     url = fetcher.GetForestIndicesImage(start, stop, rectangle, scale)
     return jsonify(href=url, geojson=geometry.toGeoJSON(),
