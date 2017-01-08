@@ -97,7 +97,7 @@ class SchedulerActor(processes: Queries, configuration: play.api.Configuration, 
 
           // Send processing request to Google Earth Engine using the python server
           val rgbUrl = details
-            .flatMap(details => fetcherActor.ask(FetchRGB(fullFmt.print(details.from), details.place, None, id)))
+            .flatMap(details => fetcherActor.ask(FetchRGB("2016-6-15", details.place, None, id)))
             .mapTo[FetchResponse]
             .map(response => response.url)
 
