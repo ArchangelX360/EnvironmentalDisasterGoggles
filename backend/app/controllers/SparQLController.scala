@@ -45,7 +45,8 @@ class SparQLController @Inject()(system: ActorSystem,
       startDate = (body \ "startDate").as[String],
       endDate = (body \ "endDate").as[String],
       eventClass = (body \ "eventClass").as[String],
-      place = (body \ "place").as[String]
+      place = (body \ "place").as[String],
+      algorithm = (body \ "algorithm").as[String]
     )
     response.map {
       case SparQLCachedResponse(stringArray) => Ok(stringArray.mkString(","))

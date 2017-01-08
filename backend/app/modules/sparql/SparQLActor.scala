@@ -44,8 +44,9 @@ object SparQLActor {
     * @param endDate    end date string formatted as xsd:DateTime
     * @param eventClass event class formatted as a string like "Deforestation" or "Urbanisation"
     * @param place      place where the event took place
+    * @param algorithm  algorithm used like "RGB" or "Photosynthesis"
     */
-  case class CacheParameters(startDate: String, endDate: String, eventClass: String, place: String)
+  case class CacheParameters(eventClass: String,  algorithm: String, startDate: String, endDate: String,  place: String)
 
   /**
     * @param uris array of uri strings of already processed images for the given query
@@ -159,7 +160,8 @@ class SparQLActor(ws: WSClient, serverUrl: String,
       "    ?event enve:place \"" + parameters.place + "\" .\n" +
       "    ?event a enve:" + parameters.eventClass + " .\n" +
       "    ?event enve:startDate \"" + parameters.startDate + "\"^^xsd:dateTime .\n" +
-      "    ?event enve:endDate \"" + parameters.endDate + "\"^^xsd:dateTime\n" +
+      "    ?event enve:endDate \"" + parameters.endDate + "\"^^xsd:dateTime .\n" +
+      "    ?event enve:algorithm enve:" + parameters.algorithm + "\n" +
       "}\n"
 
     val currentSender = sender
