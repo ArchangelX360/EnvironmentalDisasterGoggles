@@ -28,8 +28,6 @@
 	rdfs:subPropertyOf owl:topObjectProperty ;
 	rdfs:domain :Event ;
 	rdfs:range <http://dbpedia.org/ontology/Place> .
-
-<http://dbpedia.org/ontology/Place> a owl:Class .
 # 
 # 
 # 
@@ -142,6 +140,8 @@ owl:topDataProperty rdfs:domain :Event ;
 # 
 # 
 # http://dbpedia.org/ontology/Place
+
+<http://dbpedia.org/ontology/Place> a owl:Class .
 # 
 # http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Agglomeration
 
@@ -185,6 +185,15 @@ owl:topDataProperty rdfs:domain :Event ;
 # #
 # #################################################################
 # 
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#ForestDiff
+
+:ForestDiff a owl:NamedIndividual , :Algorithm ;
+	owl:sameAs :Photosynthesis .
+# 
+# http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#LightDiff
+
+:LightDiff a owl:NamedIndividual , :Algorithm .
 # 
 # http://www.semanticweb.org/archangel/ontologies/2016/11/environmental-events#Photosynthesis
 
