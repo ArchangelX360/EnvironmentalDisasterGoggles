@@ -37,4 +37,5 @@ To run our application, execute the following command:
 
     ./run.sh
     
+Then go to [http://localhost:9000/index.html](http://localhost:9000/index.html)
    
