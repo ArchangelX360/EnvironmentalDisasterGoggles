@@ -52,7 +52,7 @@ class SearchController @Inject() (system: ActorSystem, schedulerService: Schedul
   }
 
   def getImage(file: String) = Action {
-    Ok.sendFile(new File("Downloaded/" + file))
+    Ok.sendFile(new File("../../../../Downloaded/" + file))
   }
 
 }
