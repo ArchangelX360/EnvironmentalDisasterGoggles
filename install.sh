@@ -8,7 +8,7 @@ if [ ! -e "$PROJECT_EE_PATH" ]; then
     echo "Dumping your personal earth engine key"
     if [ ! -e "$EE_KEY" ]; then
         echo "Error: Earth Engine API key not found in $EE_KEY"
-        echo "Please follow instructions to generate it in ./computation/imagefetcher/README.md"
+        echo "Please follow instructions to generate it in ./README.md"
         exit 1
     fi
     cp "$EE_KEY" "$PROJECT_EE_PATH"
