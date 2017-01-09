@@ -26,8 +26,9 @@ sbt dist
 cd target/universal/
 unzip environmentaldisastergoggles-1.0.zip
 
+echo "You may be asked for your sudo password to build docker images"
 cd ../../../computation/imagefetcher/
-docker build -t imagefetcher .
+sudo docker build -t imagefetcher .
 cd ../nlp/
-docker build -t fuseki-server .
+sudo docker build -t fuseki-server .
 
